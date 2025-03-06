@@ -1,0 +1,26 @@
+name: carbatterytraceability
+services:
+  app:
+    build: ..
+    environment:
+      - BACKEND_ENV=prod
+    ports:
+      - 8080:8080
+    healthcheck:
+      test:
+        - CMD
+        - nc
+        - -vz
+        - -w1
+        - localhost
+        - '8080'
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      mongodb:
+        condition: service_healthy
+  mongodb:
+    extends:
+      file: ./mongodb.yml
+      service: mongodb

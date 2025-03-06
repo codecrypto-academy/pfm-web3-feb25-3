@@ -1,0 +1,27 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "backendType": "NodeJS",
+    "baseName": "CarBatteryTraceability",
+    "blueprints": [
+      {
+        "name": "generator-jhipster-nodejs",
+        "version": "3.1.0"
+      }
+    ],
+    "creationTimestamp": 1741295320332,
+    "databaseType": "mongodb",
+    "entities": [],
+    "jhipsterVersion": "8.9.0",
+    "monorepository": true,
+    "prodDatabaseType": "mongodb",
+    "serverPort": null,
+    "skipClient": true,
+    "skipCommitHook": true,
+    "withAdminUi": false
+  },
+  "generator-jhipster-nodejs": {
+    "nodejsVersion": "3.1.0"
+  }
+}
