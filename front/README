@@ -1,0 +1,106 @@
+# 🚗🔋 Plataforma de Trazabilidad de Baterías de Coches Eléctricos - Frontend
+
+## 📌 Descripción
+Este es el frontend de la **Plataforma de Trazabilidad de Baterías de Coches Eléctricos**, desarrollada con **Next.js**. Permite a los distintos actores del sistema visualizar y gestionar la trazabilidad de las baterías en la blockchain de **Hyperledger Fabric**.
+
+## 🎯 Objetivo
+Proporcionar una interfaz intuitiva y segura para que los usuarios puedan interactuar con la blockchain, verificar la autenticidad de las baterías y realizar transferencias dentro del ecosistema.
+
+---
+
+## 🚀 Tecnologías Utilizadas
+
+- **Framework:** Next.js
+- **Lenguaje:** TypeScript
+- **UI Library:** Tailwind CSS
+- **Autenticación:** Fabric CA con certificados X.509
+- **Estado Global:** Context API / Redux (según necesidad)
+- **Interacción con Blockchain:** Fabric SDK
+- **Despliegue:** Vercel
+
+---
+
+## 📌 Funcionalidades Principales
+
+### 🔋 Gestión de Baterías
+- Registro y consulta de baterías.
+- Visualización del historial de cambios de estado.
+- Seguimiento del ciclo de vida completo.
+
+### 🔗 Sistema de Transferencias
+- Transferencia de baterías entre actores (Productores, Fabricantes, Distribuidores, Usuarios, Recicladores).
+- Validación de transferencias según las políticas de endorsement.
+- Registro de cambios de estado de la batería (uso, reparación, degradación).
+
+### 👁️ Visualización de Trazabilidad
+- Historial completo de la batería con toda la cadena de custodia.
+- Consultas avanzadas sobre procedencia y estado actual.
+- Dashboard personalizado según el rol del usuario.
+
+---
+
+## 🏗️ Instalación y Configuración
+
+### 🔧 Requisitos Previos
+- Node.js 18+
+- Yarn o npm
+- Hyperledger Fabric configurado y en ejecución
+- Credenciales X.509 para autenticación
+
+### 📦 Instalación
+```sh
+# Clonar el repositorio
+git clone https://github.com/tu-repo/frontend-trazabilidad-baterias.git
+cd frontend-trazabilidad-baterias
+
+# Instalar dependencias
+yarn install  # o npm install
+```
+
+### ⚙️ Configuración del Entorno
+Crear un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_FABRIC_NETWORK=networkConfig.json
+NEXT_PUBLIC_ORG=Org1
+```
+
+### ▶️ Ejecución en Desarrollo
+```sh
+yarn dev  # o npm run dev
+```
+
+El frontend estará disponible en `http://localhost:3000`.
+
+---
+
+## 🚀 Despliegue
+
+### 🔹 En Vercel
+1. Conectar el repositorio con Vercel.
+2. Configurar variables de entorno en Vercel.
+3. Desplegar automáticamente con cada push a `main`.
+
+### 🔹 Despliegue Manual
+```sh
+yarn build  # o npm run build
+yarn start  # o npm start
+```
+
+---
+
+## 🛠️ Contribución
+1. Hacer un fork del repositorio.
+2. Crear una nueva rama (`feature/nueva-funcionalidad`).
+3. Hacer commit de los cambios (`git commit -m 'Añadir nueva funcionalidad'`).
+4. Enviar un Pull Request.
+
+---
+
+## 📄 Licencia
+Este proyecto está bajo la licencia **MIT**.
+
+---
+
+## 📞 Contacto
+Si tienes dudas o sugerencias, puedes escribir a: [email@example.com](mailto:email@example.com).
