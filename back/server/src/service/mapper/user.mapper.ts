@@ -1,19 +1,29 @@
+import { ObjectId } from 'mongodb';
 import { User } from '../../domain/user.entity';
 import { UserDTO } from '../dto/user.dto';
 
 /**
- * An User mapper object.
+ * User Mapper object.
  */
 export class UserMapper {
+  
   static fromDTOtoEntity(userDTO: UserDTO): User {
     if (!userDTO) {
       return;
     }
+
     const user = new User();
-    const fields = Object.getOwnPropertyNames(userDTO);
-    fields.forEach(field => {
-      user[field] = userDTO[field];
-    });
+    
+    // ✅ Convertir `id` a `_id` correctamente
+    if (userDTO.id) {
+      user._id = new ObjectId(userDTO.id);
+    } else {
+      user._id = undefined; // Asegurar que no sea null
+    }
+
+    user.ethereumAddress = userDTO.ethereumAddress;
+    user.roles = userDTO.roles;
+
     return user;
   }
 
@@ -21,13 +31,13 @@ export class UserMapper {
     if (!user) {
       return;
     }
+    
     const userDTO = new UserDTO();
-
-    const fields = Object.getOwnPropertyNames(user);
-
-    fields.forEach(field => {
-      userDTO[field] = user[field];
-    });
+    
+    // ✅ Convertir `_id` a `id` en el DTO
+    userDTO.id = user._id?.toHexString(); 
+    userDTO.ethereumAddress = user.ethereumAddress;
+    userDTO.roles = user.roles;
 
     return userDTO;
   }

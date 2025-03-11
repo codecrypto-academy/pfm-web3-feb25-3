@@ -18,17 +18,26 @@ async function ormConfig(): Promise<TypeOrmModuleOptions> {
       useUnifiedTopology: true,
       logging: false,
     };
-  } else if (process.env.BACKEND_ENV === 'test' || process.env.BACKEND_ENV === 'dev') {
+  } else if (process.env.BACKEND_ENV === 'dev') {
+    ormconfig = {
+      name: 'default',
+      type: 'mongodb',
+      url: 'mongodb://localhost:27017/CarBatteryTraceability', // Se conecta a la base de datos local en desarrollo
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      logging: ['query', 'error'], 
+    };
+  } else if (process.env.BACKEND_ENV === 'test') {
     mongod = await MongoMemoryServer.create();
     const uri = mongod.getUri();
 
     ormconfig = {
       name: 'default',
       type: 'mongodb',
-      url: uri, // En lugar de host/port, usa el URI del servidor en memoria
+      url: uri, // En test, usa el servidor en memoria
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      logging: true,
+      logging: false,
     };
   } else {
     throw new Error(`BACKEND_ENV '${process.env.BACKEND_ENV}' no es válido.`);

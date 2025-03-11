@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEthereumAddress, IsArray, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsArray, IsString } from 'class-validator';
+import { IsEthereumAddress } from 'class-validator';
+import { ObjectId } from 'mongodb';
 
 /**
- * User DTO object optimized for Ethereum authentication.
+ * User DTO optimized for Ethereum authentication.
  */
 export class UserDTO  {
-  @Transform(({ value }) => (value?.toHexString ? value?.toHexString() : value), { toPlainOnly: true })
+  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : value), { toPlainOnly: true })
   id?: string;
 
   @ApiProperty({ uniqueItems: true, example: '0x1234567890abcdef1234567890abcdef12345678', description: 'Ethereum Address' })
