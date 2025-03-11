@@ -1,53 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
-import { Exclude, Transform } from 'class-transformer';
-import { BaseDTO } from './base.dto';
+import { IsEthereumAddress, IsArray, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 /**
- * An User DTO object.
+ * User DTO object optimized for Ethereum authentication.
  */
-export class UserDTO extends BaseDTO {
+export class UserDTO  {
   @Transform(({ value }) => (value?.toHexString ? value?.toHexString() : value), { toPlainOnly: true })
   id?: string;
 
-  @ApiProperty({ uniqueItems: true, example: 'myuser', description: 'User login' })
-  @IsString()
-  login: string;
-
-  @ApiProperty({ example: 'MyUser', description: 'User first name', required: false })
-  firstName?: string;
-
-  @ApiProperty({ example: 'MyUser', description: 'User last name', required: false })
-  lastName?: string;
-
-  @ApiProperty({ example: 'myuser@localhost.it', description: 'User email' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: 'true', description: 'User activation', required: false })
-  activated?: boolean;
-
-  @ApiProperty({ example: 'en', description: 'User language', required: false })
-  langKey?: string;
+  @ApiProperty({ uniqueItems: true, example: '0x1234567890abcdef1234567890abcdef12345678', description: 'Ethereum Address' })
+  @IsEthereumAddress()
+  ethereumAddress: string;
 
   @ApiProperty({
     isArray: true,
-    enum: ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_ANONYMOUS'],
-    description: 'Array of permissions',
-    required: false,
+    enum: ['ROLE_USER', 'ROLE_ADMIN'],
+    description: 'User roles',
   })
-  authorities?: any[];
-
-  @Exclude()
-  @ApiProperty({ example: 'myuser', description: 'User password' })
-  password: string;
-
-  @ApiProperty({ example: 'http://my-image-url', description: 'Image url', required: false })
-  imageUrl?: string;
-
-  activationKey?: string;
-
-  resetKey?: string;
-
-  resetDate?: Date;
+  @IsArray()
+  @IsString({ each: true })
+  roles: string[];
 }

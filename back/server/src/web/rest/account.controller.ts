@@ -1,16 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
+  ConflictException,
   Controller,
   Get,
-  HttpCode,
-  InternalServerErrorException,
   Logger,
-  Param,
   Post,
   Req,
-  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,6 +19,7 @@ import { PasswordChangeDTO } from '../../service/dto/password-change.dto';
 import { UserDTO } from '../../service/dto/user.dto';
 import { LoggingInterceptor } from '../../client/interceptors/logging.interceptor';
 import { AuthService } from '../../service/auth.service';
+import { compareSignature } from '../../../utils/signature-utils';
 
 @Controller('api')
 @UseInterceptors(LoggingInterceptor, ClassSerializerInterceptor)
@@ -31,27 +30,36 @@ export class AccountController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/register')
-  @ApiOperation({ summary: 'Register user' })
+  @ApiOperation({ summary: 'Register user via MetaMask' })
   @ApiResponse({
     status: 201,
-    description: 'Registered user',
+    description: 'User successfully registered',
     type: UserDTO,
   })
-  async registerAccount(@Req() req: Request, @Body() userDTO: UserDTO & { password: string }): Promise<any> {
-    return await this.authService.registerNewUser(userDTO);
-  }
+  async registerAccount(@Req() req: Request, @Body() userDTO: UserDTO & { signature: string; nonce: string }): Promise<any> {
+    const { ethereumAddress, signature, nonce } = userDTO;
 
-  @Get('/activate')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.ADMIN)
-  @ApiOperation({ summary: 'Activate an account' })
-  @ApiResponse({
-    status: 200,
-    description: 'activated',
-  })
-  activateAccount(@Param() key: string, @Res() res: Response): any {
-    throw new InternalServerErrorException();
+    if (!ethereumAddress || !signature || !nonce) {
+      throw new BadRequestException('Ethereum address, signature, and nonce are required');
+    }
+
+    // Validar firma
+    const isValidSignature = await compareSignature(nonce, signature, ethereumAddress);
+    if (!isValidSignature) {
+      throw new BadRequestException('Invalid signature');
+    }
+
+    // Registrar o autenticar usuario
+    try {
+      const user = await this.authService.registerNewUser(userDTO);
+      return { message: 'User registered successfully', user };
+    } catch (error) {
+      if (error.code === 11000) {
+        // Error de clave única en MongoDB
+        throw new ConflictException('User already exists');
+      }
+      throw new BadRequestException(error.message);
+    }
   }
 
   @Get('/authenticate')
@@ -78,68 +86,10 @@ export class AccountController {
   async getAccount(@Req() req: Request): Promise<any> {
     const user: any = req.user;
     const userProfileFound = await this.authService.getAccount(user.id);
-    if (userProfileFound && !userProfileFound.firstName) {
-      userProfileFound.firstName = '';
+    if (!userProfileFound) {
+      return null;
     }
-    if (userProfileFound && !userProfileFound.lastName) {
-      userProfileFound.lastName = '';
-    }
+
     return userProfileFound;
-  }
-
-  @Post('/account')
-  @HttpCode(200)
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update the current user information' })
-  @ApiResponse({
-    status: 200,
-    description: 'user info updated',
-    type: UserDTO,
-  })
-  async saveAccount(@Req() req: Request, @Body() newUserInfo: UserDTO): Promise<any> {
-    const user: any = req.user;
-    return await this.authService.updateUserSettings(user.login, newUserInfo);
-  }
-
-  @Post('/account/change-password')
-  @HttpCode(200)
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Change current password' })
-  @ApiResponse({
-    status: 200,
-    description: 'user password changed',
-    type: PasswordChangeDTO,
-  })
-  async changePassword(@Req() req: Request, @Body() passwordChange: PasswordChangeDTO): Promise<any> {
-    const user: any = req.user;
-    return await this.authService.changePassword(user.login, passwordChange.currentPassword, passwordChange.newPassword);
-  }
-
-  @Post('/account/reset-password/init')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Send an email to reset the password of the user' })
-  @ApiResponse({
-    status: 201,
-    description: 'mail to reset password sent',
-    type: 'string',
-  })
-  requestPasswordReset(@Req() req: Request, @Body() email: string, @Res() res: Response): any {
-    throw new InternalServerErrorException();
-  }
-
-  @Post('/account/reset-password/finish')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Finish to reset the password of the user' })
-  @ApiResponse({
-    status: 201,
-    description: 'password reset',
-    type: 'string',
-  })
-  finishPasswordReset(@Req() req: Request, @Body() keyAndPassword: string, @Res() res: Response): any {
-    throw new InternalServerErrorException();
   }
 }

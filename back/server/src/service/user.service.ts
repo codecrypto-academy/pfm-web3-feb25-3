@@ -25,33 +25,33 @@ export class UserService {
     return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
   }
 
-  async findAndCount(options: FindManyOptions<UserDTO>): Promise<[UserDTO[], number]> {
-    const resultList = await this.userRepository.findAndCount(options);
-    const usersDTO: UserDTO[] = [];
-    if (resultList && resultList[0]) {
-      resultList[0].forEach(user => usersDTO.push(UserMapper.fromEntityToDTO(this.flatAuthorities(user))));
-      resultList[0] = usersDTO;
-    }
-    return resultList;
+  async findAll(): Promise<UserDTO[]> {
+    // Usamos find en lugar de findAndCount para obtener todos los usuarios sin contar
+    const users = await this.userRepository.find();
+    
+    // Convertimos cada usuario a DTO y aplanamos las autoridades
+    const usersDTO: UserDTO[] = users.map(user => 
+      UserMapper.fromEntityToDTO(this.flatAuthorities(user))
+    );
+    
+    return usersDTO;
   }
+  
 
-  async save(userDTO: UserDTO, creator?: string, updatePassword = false): Promise<UserDTO | undefined> {
+  async save(userDTO: UserDTO): Promise<UserDTO | undefined> {
+    // Convertir el DTO en la entidad del usuario
     const user = this.convertInAuthorities(UserMapper.fromDTOtoEntity(userDTO));
-    if (updatePassword) {
-      await transformPassword(user);
-    }
-    if (creator) {
-      if (!user.createdBy) {
-        user.createdBy = creator;
-      }
-      user.lastModifiedBy = creator;
-    }
+  
+    // Guardar el usuario en la base de datos (suponiendo que uses un repositorio o servicio para esto)
     const result = await this.userRepository.save(user);
+  
+    // Mapear la entidad guardada de nuevo a DTO y devolverla
     return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
   }
+  
 
-  async update(userDTO: UserDTO, updater?: string): Promise<UserDTO | undefined> {
-    return this.save(userDTO, updater);
+  async update(userDTO: UserDTO): Promise<UserDTO | undefined> {
+    return this.save(userDTO);
   }
 
   async delete(userDTO: UserDTO): Promise<UserDTO | undefined> {

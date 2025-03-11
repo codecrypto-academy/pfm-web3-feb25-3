@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, RoleType, Roles, RolesGuard } from '../../security';
-import { Page, PageRequest } from '../../domain/base/pagination.entity';
 import { UserDTO } from '../../service/dto/user.dto';
 import { HeaderUtil } from '../../client/header-util';
 import { Request } from '../../client/request';
@@ -40,12 +39,8 @@ export class UserController {
     type: UserDTO,
   })
   async getAllUsers(@Req() req: Request): Promise<UserDTO[]> {
-    const pageRequest: PageRequest = new PageRequest(req.query.page, req.query.size);
-    const [results, count] = await this.userService.findAndCount({
-      skip: +pageRequest.page * pageRequest.size,
-      take: +pageRequest.size,
-    });
-    HeaderUtil.addPaginationHeaders(req.res, new Page(results, count, pageRequest));
+    // Eliminamos la paginación, ahora simplemente devolvemos todos los usuarios
+    const results = await this.userService.findAll();  
     return results;
   }
 
@@ -59,10 +54,15 @@ export class UserController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async createUser(@Req() req: Request, @Body() userDTO: UserDTO): Promise<UserDTO> {
-    userDTO.password = userDTO.login;
-    const created = await this.userService.save(userDTO, req.user?.login);
-    HeaderUtil.addEntityCreatedHeaders(req.res, 'User', created.id);
-    return created;
+    // En el caso de MetaMask, no necesitamos asignar un password
+    // userDTO.password = userDTO.login; // Esto ya no es necesario
+
+    // Se asignan roles al usuario
+    userDTO.roles = ['ROLE_USER']; // Definir rol por defecto si es necesario
+
+    const created = await this.userService.save(userDTO);  // Guardamos el usuario
+    HeaderUtil.addEntityCreatedHeaders(req.res, 'User', created.id);  // Añadimos encabezados de creación
+    return created;  // Retornamos el usuario creado
   }
 
   @Put('/')
@@ -74,24 +74,27 @@ export class UserController {
     type: UserDTO,
   })
   async updateUser(@Req() req: Request, @Body() userDTO: UserDTO): Promise<UserDTO> {
-    const userOnDb = await this.userService.find({ where: { login: userDTO.login } });
+    // Buscamos al usuario por su dirección Ethereum (ethereumAddress)
+    const userOnDb = await this.userService.find({ where: { ethereumAddress: userDTO.ethereumAddress } });
     let updated = false;
     if (userOnDb && userOnDb.id) {
       userDTO.id = userOnDb.id;
       updated = true;
     } else {
-      userDTO.password = userDTO.login;
+      // Si el usuario no existe, le asignamos un rol por defecto
+      userDTO.roles = ['ROLE_USER']; // Aseguramos que se le asigna un rol
     }
-    const createdOrUpdated = await this.userService.update(userDTO, req.user?.login);
+    const createdOrUpdated = await this.userService.save(userDTO);  // Guardamos o actualizamos el usuario
+
     if (updated) {
-      HeaderUtil.addEntityUpdatedHeaders(req.res, 'User', createdOrUpdated.id);
+      HeaderUtil.addEntityUpdatedHeaders(req.res, 'User', createdOrUpdated.id);  // Añadimos encabezados de actualización
     } else {
-      HeaderUtil.addEntityCreatedHeaders(req.res, 'User', createdOrUpdated.id);
+      HeaderUtil.addEntityCreatedHeaders(req.res, 'User', createdOrUpdated.id);  // Si el usuario es nuevo, añadimos encabezados de creación
     }
-    return createdOrUpdated;
+    return createdOrUpdated;  // Retornamos el usuario creado o actualizado
   }
 
-  @Get('/:login')
+  @Get('/:ethereumAddress')
   @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Get user' })
   @ApiResponse({
@@ -99,11 +102,11 @@ export class UserController {
     description: 'The found record',
     type: UserDTO,
   })
-  async getUser(@Param('login') loginValue: string): Promise<UserDTO> {
-    return await this.userService.find({ where: { login: loginValue } });
+  async getUser(@Param('ethereumAddress') ethereumAddress: string): Promise<UserDTO> {
+    return await this.userService.find({ where: { ethereumAddress } });  // Buscamos por dirección Ethereum (ethereumAddress)
   }
 
-  @Delete('/:login')
+  @Delete('/:ethereumAddress')
   @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Delete user' })
   @ApiResponse({
@@ -111,9 +114,9 @@ export class UserController {
     description: 'The record has been successfully deleted.',
     type: UserDTO,
   })
-  async deleteUser(@Req() req: Request, @Param('login') loginValue: string): Promise<UserDTO> {
-    HeaderUtil.addEntityDeletedHeaders(req.res, 'User', loginValue);
-    const userToDelete = await this.userService.find({ where: { login: loginValue } });
-    return await this.userService.delete(userToDelete);
+  async deleteUser(@Req() req: Request, @Param('ethereumAddress') ethereumAddress: string): Promise<UserDTO> {
+    HeaderUtil.addEntityDeletedHeaders(req.res, 'User', ethereumAddress);  // Añadimos encabezados de eliminación
+    const userToDelete = await this.userService.find({ where: { ethereumAddress } });  // Buscamos el usuario por su dirección Ethereum (ethereumAddress)
+    return await this.userService.delete(userToDelete);  // Eliminamos el usuario
   }
 }

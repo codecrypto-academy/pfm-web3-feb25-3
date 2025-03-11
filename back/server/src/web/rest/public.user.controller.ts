@@ -23,12 +23,7 @@ export class PublicUserController {
     type: UserDTO,
   })
   async getAllPublicUsers(@Req() req: Request): Promise<UserDTO[]> {
-    const pageRequest: PageRequest = new PageRequest(req.query.page, req.query.size);
-    const [results, count] = await this.authService.getAllUsers({
-      skip: +pageRequest.page * pageRequest.size,
-      take: +pageRequest.size,
-    });
-    HeaderUtil.addPaginationHeaders(req.res, new Page(results, count, pageRequest));
+    const results = await this.authService.getAllUsers();
     return results;
   }
 

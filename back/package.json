@@ -15,6 +15,7 @@
     "ci:e2e:prepare:docker": "npm run services:up --if-present && docker ps -a",
     "ci:e2e:teardown": "npm run ci:e2e:teardown:docker --if-present",
     "ci:e2e:teardown:docker": "docker compose -f docker/services.yml down -v && docker ps -a",
+    "debug": "node --inspect-brk=9229 --require ts-node/register server/src/main.ts",
     "docker:db:down": "docker compose -f docker/mongodb.yml down -v",
     "docker:db:up": "docker compose -f docker/mongodb.yml up --wait",
     "lint:fix": "echo \"INFO: no client found\"",
@@ -23,6 +24,7 @@
     "services:up": "docker compose -f docker/services.yml up --wait",
     "start": "concurrently -k -s first -n application,client -c red,green npm:start:server npm:start:client",
     "start:client": "npm run start -w client",
+    "start:debug": "npm run debug -w server",
     "start:server": "npm run start -w server",
     "pretest:server:e2e": "npm run docker:db:up",
     "test": "echo \"INFO: no client test found\"",
@@ -33,6 +35,10 @@
   },
   "config": {
     "default_environment": "prod"
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "ethers": "^6.13.5"
   },
   "devDependencies": {
     "@eslint/js": "9.20.0",
