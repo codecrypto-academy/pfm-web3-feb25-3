@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+
+
+:root {
+  --background: #14532d;
+  --foreground: #fcfdfc;
+  --dashboard-bg: #f0fdf4;    /* Color de fondo claro para dashboard */
+  --dashboard-text: #166534;   /* Color de texto para dashboard */
+  --dashboard-card: #ffffff;   /* Color para tarjetas en dashboard */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-dashboard-bg: var(--dashboard-bg);
+  --color-dashboard-text: var(--dashboard-text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14532d;
+    --foreground: #fcfdfc;
+    --dashboard-bg: #166534;    /* Versión oscura */
+    --dashboard-text: #f0fdf4;  /* Versión oscura */
+    --dashboard-card: #1a5d3a;  /* Versión oscura */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
