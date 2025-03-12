@@ -22,7 +22,7 @@ async function ormConfig(): Promise<TypeOrmModuleOptions> {
     ormconfig = {
       name: 'default',
       type: 'mongodb',
-      url: 'mongodb://localhost:27017/CarBatteryTraceability', // Se conecta a la base de datos local en desarrollo
+      url: 'mongodb://localhost:27017/CarBatteryTraceability', 
       useNewUrlParser: true,
       useUnifiedTopology: true,
       logging: ['query', 'error'], 

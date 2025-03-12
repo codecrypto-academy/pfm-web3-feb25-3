@@ -26,7 +26,7 @@ export class UserService {
       }
 
       this.logger.log(`✅ Usuario con ID ${id} encontrado.`);
-      return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
+      return UserMapper.fromEntityToDTO(result);
     } catch (error) {
       this.logger.error(`❌ Error en findById(${id}):`, error);
       throw new Error("No se pudo obtener el usuario. Inténtalo de nuevo más tarde.");
@@ -41,7 +41,7 @@ export class UserService {
       return undefined;
     }
     this.logger.log(`✅ Usuario encontrado con opciones: ${JSON.stringify(options)}`);
-    return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
+    return UserMapper.fromEntityToDTO(result);
   }
 
   async find(options: FindManyOptions<User>): Promise<UserDTO | undefined> {
@@ -52,7 +52,7 @@ export class UserService {
       return undefined;
     }
     this.logger.log(`✅ Usuario encontrado con opciones: ${JSON.stringify(options)}`);
-    return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
+    return UserMapper.fromEntityToDTO(result);
   }
 
   async findAll(): Promise<UserDTO[]> {
@@ -65,17 +65,17 @@ export class UserService {
     }
 
     this.logger.log(`✅ Se encontraron ${users.length} usuarios.`);
-    return users.map(user => UserMapper.fromEntityToDTO(this.flatAuthorities(user)));
+    return users.map(user => UserMapper.fromEntityToDTO(user));
   }
 
   async save(userDTO: UserDTO): Promise<UserDTO | undefined> {
     this.logger.debug(`💾 Guardando usuario: ${JSON.stringify(userDTO)}`);
 
-    const user = this.convertInAuthorities(UserMapper.fromDTOtoEntity(userDTO));
+    const user = UserMapper.fromDTOtoEntity(userDTO)
     const result = await this.userRepository.save(user);
 
     this.logger.log(`✅ Usuario guardado con éxito. ID: ${result._id?.toHexString()}`);
-    return UserMapper.fromEntityToDTO(this.flatAuthorities(result));
+    return UserMapper.fromEntityToDTO(result);
   }
 
   async update(userDTO: UserDTO): Promise<UserDTO | undefined> {
@@ -91,23 +91,5 @@ export class UserService {
 
     this.logger.log(`✅ Usuario con ID ${userDTO.id} eliminado correctamente.`);
     return UserMapper.fromEntityToDTO(result);
-  }
-
-  private flatAuthorities(user: any): User {
-    if (user && user.roles) {
-      const authorities: string[] = [];
-      user.roles.forEach(authority => authorities.push(authority.name));
-      user.roles = authorities;
-    }
-    return user;
-  }
-
-  private convertInAuthorities(user: any): User {
-    if (user && user.roles) {
-      const authorities: any[] = [];
-      user.roles.forEach(authority => authorities.push({ name: authority }));
-      user.roles = authorities;
-    }
-    return user;
   }
 }
