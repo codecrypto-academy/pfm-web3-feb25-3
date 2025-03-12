@@ -8,8 +8,8 @@ export default function Usuario() {
           <label className="text-sm font-medium text-gray-600">Nombre:</label>
           <input 
             type="text"
-            className="p-2 border rounded-md"
-            placeholder="Tu nombre completo"
+            className="p-2 border rounded-md text-black"
+            //placeholder="Tu nombre completo"
             disabled
           />
         </div>
@@ -18,8 +18,8 @@ export default function Usuario() {
           <label className="text-sm font-medium text-gray-600">Dirección:</label>
           <input 
             type="text"
-            className="p-2 border rounded-md"
-            placeholder="12345678A"
+            className="p-2 border rounded-md text-black"
+            //placeholder="12345678A"
             disabled
           />
         </div>
@@ -28,8 +28,8 @@ export default function Usuario() {
           <label className="text-sm font-medium text-gray-600">Email:</label>
           <input 
             type="email"
-            className="p-2 border rounded-md"
-            placeholder="usuario@ejemplo.com"
+            className="p-2 border rounded-md text-black"
+            //placeholder="usuario@ejemplo.com"
             disabled
           />
         </div>
