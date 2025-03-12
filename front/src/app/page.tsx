@@ -1,5 +1,6 @@
 'use client';
 
+import Register from '@/components/Register';
 import ConnectWallet from '../components/ConnectWallet';
 
 export default function Home() {
@@ -17,6 +18,7 @@ return (
         <h2 className="text-2xl font-bold text-center sm:text-left">
           Trazabilidad de baterías de vehículos eléctricos
         </h2>
+        <Register />
         
       </main>
       <div>
