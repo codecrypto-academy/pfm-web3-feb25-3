@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import {  UserCircle, BarChart3, Factory, HelpCircle, ExternalLinkIcon, } from 'lucide-react';
+import {  UserCircle, Factory, ExternalLinkIcon, Store, ShoppingCart, Truck, } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
-  { icon: <UserCircle />, label: 'Profile', href: '/dashboard/profile' },
-  { icon: <HelpCircle />, label: 'Producer', href: '/dashboard/producer' },
+  //{ icon: <UserCircle />, label: 'Profile', href: '/dashboard/profile' },
+  { icon: <Truck />, label: 'Transport', href: '/dashboard/transport' },
   { icon: <Factory />, label: 'Factory', href: '/dashboard/factory' },
-  { icon: <UserCircle />, label: 'Retailer', href: '/dashboard/retailer' },
-  { icon: <BarChart3 />, label: 'Consumer', href: '/dashboard/consumer' },
+  { icon: <Store />, label: 'Retailer', href: '/dashboard/retailer' },
+  { icon: <ShoppingCart />, label: 'Consumer', href: '/dashboard/consumer' },
   { icon: <ExternalLinkIcon />, label: 'Exit', href: '/dashboard/exit' },
 ];
 

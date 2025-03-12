@@ -1,6 +1,6 @@
 export default function Usuario() {
   return (
-    <div className="space-y-6 p-6 bg-white rounded-lg shadow-md">
+    <div className="inline-block space-y-6 p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold text-gray-900 mb-4">Datos del Usuario</h1>
       
       <div className="space-y-4">
@@ -15,7 +15,7 @@ export default function Usuario() {
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-600">NIF:</label>
+          <label className="text-sm font-medium text-gray-600">Dirección:</label>
           <input 
             type="text"
             className="p-2 border rounded-md"

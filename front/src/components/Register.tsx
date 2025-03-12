@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 interface ClientData {
   name: string;
   address: string;
+  email: string;
   role: string;
 }
 
@@ -13,6 +14,7 @@ const Register = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
+  const [email, setEmail] = useState('');
   const [datosClient, setDatosClient] = useState<ClientData | null>(null);
   const [showMetamaskMessage, setShowMetamaskMessage] = useState(false);
 
@@ -39,10 +41,15 @@ const Register = () => {
     setAddress(event.target.value);
   };
 
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value);
+  };
+
   const handleSubmit = () => {
     const clientData: ClientData = {
       name: name,
       address: address,
+      email: email,
       role: selectedRole
     };
     setDatosClient(clientData);
@@ -85,6 +92,19 @@ const Register = () => {
               onChange={handleAddressChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               placeholder="Ingrese su dirección"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Email
+            </label>
+            <input
+              type="text"
+              value={email}
+              onChange={handleEmailChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="Ingrese su email"
             />
           </div>
 
