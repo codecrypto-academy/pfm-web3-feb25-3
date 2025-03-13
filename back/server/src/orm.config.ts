@@ -4,6 +4,8 @@ import { SeedUsersRoles1570200490072 } from './migrations/1570200490072-SeedUser
 import { CreateTables1570200270081 } from './migrations/1570200270081-CreateTables';
 import { User } from './domain/user.entity';
 import { Authority } from './domain/authority.entity';
+import { Shipment } from './domain/shipment.entity';
+import { Battery } from './domain/battery.entity';
 
 async function ormConfig(): Promise<TypeOrmModuleOptions> {
   let mongod: MongoMemoryServer | null = null;
@@ -44,11 +46,13 @@ async function ormConfig(): Promise<TypeOrmModuleOptions> {
   }
 
   return {
-    synchronize: process.env.BACKEND_ENV === 'test',
+    synchronize: process.env.BACKEND_ENV !== 'prod', // 🔥 Solo false en producción
     migrationsRun: true,
     entities: [
       User,
       Authority,
+      Battery,
+      Shipment
     ],
     migrations: [
       CreateTables1570200270081,
