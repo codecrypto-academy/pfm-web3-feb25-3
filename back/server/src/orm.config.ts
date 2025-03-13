@@ -46,7 +46,7 @@ async function ormConfig(): Promise<TypeOrmModuleOptions> {
   }
 
   return {
-    synchronize: process.env.BACKEND_ENV !== 'prod', // 🔥 Solo false en producción
+    synchronize: process.env.BACKEND_ENV === 'test' || process.env.BACKEND_ENV === 'dev'  ,
     migrationsRun: true,
     entities: [
       User,

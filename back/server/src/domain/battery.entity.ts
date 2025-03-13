@@ -1,5 +1,6 @@
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import { BatteryStatus } from './enum/battery-status.enum'; // Asegúrate de importar el enum correctamente
 
 /**
  * Representa una batería en la trazabilidad.
@@ -21,9 +22,9 @@ export class Battery {
   @Column()
   currentOwnerId: string;  // ID del usuario actual (distribuidor, dueño, etc.)
 
-  @Column({ default: 'Manufactured' })  
-  status: string;  // Estado: Manufactured, In Transit, Installed, Recycled
+  @Column({ type: 'enum', enum: BatteryStatus, default: BatteryStatus.MANUFACTURED })  
+  status: BatteryStatus;  // Estado: Manufactured, In Transit, Installed, Recycled
 
-  @Column()
+  @Column({ nullable: true })
   location: string;  // Ubicación actual (opcional)
 }
