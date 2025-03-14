@@ -18,7 +18,7 @@ import {
   import { Request } from '../../client/request';
   import { LoggingInterceptor } from '../../client/interceptors/logging.interceptor';
   import { BatteryDTO } from '../../service/dto/battery.dto'; // Asegúrate de importar el DTO
-import { BatteryService } from 'src/service/battery.service';
+import { BatteryService } from '../../service/battery.service';
   
   @Controller('api/batteries')
   @UseGuards(AuthGuard, RolesGuard)

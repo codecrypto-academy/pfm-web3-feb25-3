@@ -1,4 +1,4 @@
-import { Battery } from "src/domain/battery.entity";
+import { Battery } from "../../domain/battery.entity";
 import { BatteryDTO } from "../dto/battery.dto";
 import { ObjectId } from "mongodb";
 

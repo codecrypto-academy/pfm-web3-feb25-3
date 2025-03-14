@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsEnum, IsOptional } from 'class-validator';
-import { BatteryStatus } from 'src/domain/enum/battery-status.enum';  // Asegúrate de importar el enum correctamente
+import { BatteryStatus } from '../../domain/enum/battery-status.enum';  // Asegúrate de importar el enum correctamente
 
 /**
  * Battery DTO for API exposure.

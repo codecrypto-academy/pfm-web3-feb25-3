@@ -6,6 +6,7 @@ import { User } from './domain/user.entity';
 import { Authority } from './domain/authority.entity';
 import { Shipment } from './domain/shipment.entity';
 import { Battery } from './domain/battery.entity';
+import { SeedBatteries1670200490073 } from './migrations/1570200509999-SeedBatteries';
 
 async function ormConfig(): Promise<TypeOrmModuleOptions> {
   let mongod: MongoMemoryServer | null = null;
@@ -57,6 +58,7 @@ async function ormConfig(): Promise<TypeOrmModuleOptions> {
     migrations: [
       CreateTables1570200270081,
       SeedUsersRoles1570200490072,
+      SeedBatteries1670200490073
     ],
     autoLoadEntities: true,
     ...ormconfig,
