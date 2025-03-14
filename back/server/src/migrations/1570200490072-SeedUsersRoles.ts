@@ -1,33 +1,75 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { User } from '../domain/user.entity';
 import { Authority } from '../domain/authority.entity';
+import { UserType } from '../domain/enum/user-type.enum';
 
 export class SeedUsersRoles1570200490072 implements MigrationInterface {
-  role1: Authority = { name: 'ROLE_ADMIN' };
-  role2: Authority = { name: 'ROLE_USER' };
+	roleAdmin: Authority = { name: 'ROLE_ADMIN' };
+	roleUser: Authority = { name: 'ROLE_USER' };
+	roleProducer: Authority = { name: 'ROLE_PRODUCER' };
+	roleManufacturer: Authority = { name: 'ROLE_MANUFACTURER' };
+	roleDistributor: Authority = { name: 'ROLE_DISTRIBUTOR' };
+	roleOwner: Authority = { name: 'ROLE_OWNER' };
+	roleRecycler: Authority = { name: 'ROLE_RECYCLER' };
 
-  user1: User = {
-    ethereumAddress: '0x1234567890123456789012345678901234567890',
-    roles: ['ROLE_ADMIN', 'ROLE_USER'],
-  };
+	public async up(queryRunner: QueryRunner): Promise<void> {
+		const authorityRepository = queryRunner.connection.getRepository(Authority);
+		const userRepository = queryRunner.connection.getRepository(User);
 
-  user2: User = {
-    ethereumAddress: '0x9876543210987654321098765432109876543210',
-    roles: ['ROLE_USER'],
-  };
+		// Guardar roles en la base de datos y obtener referencias
+		const adminRole = await authorityRepository.save(this.roleAdmin);
+		const userRole = await authorityRepository.save(this.roleUser);
+		const producerRole = await authorityRepository.save(this.roleProducer);
+		const manufacturerRole = await authorityRepository.save(this.roleManufacturer);
+		const distributorRole = await authorityRepository.save(this.roleDistributor);
+		const ownerRole = await authorityRepository.save(this.roleOwner);
+		const recyclerRole = await authorityRepository.save(this.roleRecycler);
 
-  user3: User = {
-    ethereumAddress: '0xABCDEFABCDEFABCDEFABCDEFABCDEFABCDEFABCD',
-    roles: ['ROLE_ADMIN'],
-  };
+		// Crear usuarios con sus roles
+		const user1 = new User();
+		user1.ethereumAddress = '0x1234567890abcdef1234567890abcdef12345678';
+		user1.type = UserType.ADMIN;
+		user1.roles = [adminRole, userRole];
 
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    const authorityRepository = queryRunner.connection.getRepository('jhi_authority');
-    await authorityRepository.save([this.role1, this.role2]);
+		const user2 = new User();
+		user2.ethereumAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+		user2.type = UserType.OWNER;
+		user2.roles = [userRole, ownerRole];
 
-    const userRepository = queryRunner.connection.getRepository('jhi_user');
-    await userRepository.save([this.user1, this.user2, this.user3]);
-  }
+		const user3 = new User();
+		user3.ethereumAddress = '0x567890abcdef1234567890abcdef123456789012';
+		user3.type = UserType.PRODUCER;
+		user3.roles = [producerRole];
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+		const user4 = new User();
+		user4.ethereumAddress = '0xabcdef567890abcdef1234567890abcdef123456';
+		user4.type = UserType.VEHICLE_MANUFACTURER;
+		user4.roles = [manufacturerRole];
+
+		const user5 = new User();
+		user5.ethereumAddress = '0x7890abcdef1234567890abcdef1234567890abcd';
+		user5.type = UserType.DISTRIBUTOR;
+		user5.roles = [distributorRole];
+
+		const user6 = new User();
+		user6.ethereumAddress = '0x234567890abcdef1234567890abcdef123456789';
+		user6.type = UserType.RECYCLER;
+		user6.roles = [recyclerRole];
+
+		// Guardar los usuarios en la base de datos
+		await userRepository.save([user1, user2, user3, user4, user5, user6]);
+
+		console.log('✅ Usuarios y roles creados exitosamente');
+	}
+
+	public async down(queryRunner: QueryRunner): Promise<void> {
+		const userRepository = queryRunner.connection.getRepository(User);
+		const authorityRepository = queryRunner.connection.getRepository(Authority);
+
+		// Eliminar usuarios y roles
+		await userRepository.clear();
+		await authorityRepository.clear();
+
+		console.log('✅ Usuarios y roles eliminados correctamente');
+	}
 }
