@@ -21,7 +21,6 @@ import {
 import { BatteryService } from '../../service/battery.service';
   
   @Controller('api/batteries')
-  @UseGuards(AuthGuard, RolesGuard)
   @UseInterceptors(LoggingInterceptor, ClassSerializerInterceptor)
   @ApiBearerAuth()
   @ApiTags('battery-resource')
@@ -32,7 +31,6 @@ import { BatteryService } from '../../service/battery.service';
   
     // Obtener todas las baterías
     @Get()
-    @Roles(RoleType.ADMIN, RoleType.PRODUCER, RoleType.MANUFACTURER)
     @ApiOperation({ summary: 'Get the list of all batteries' })
     @ApiResponse({
       status: 200,

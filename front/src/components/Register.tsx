@@ -1,129 +1,122 @@
 'use client';
 
+import axios from 'axios';
 import React, { useState } from 'react';
 
-interface ClientData {
-  name: string;
-  address: string;
-  email: string;
-  role: string;
+// Enum de tipos de usuario
+export enum UserType {
+  ADMIN = 'admin',
+  USER = 'user',
+  PRODUCER = 'producer',
+  VEHICLE_MANUFACTURER = 'vehicle_manufacturer',
+  DISTRIBUTOR = 'distributor',
+  OWNER = 'owner',
+  RECYCLER = 'recycler',
 }
+
+// Interfaz User
+interface User {
+  ethereumAddress: string;
+  roles: string[];
+  type?: UserType;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+}
+
+// Definición de roles
+const rolesMap: Record<string, { role: string; type: UserType }> = {
+  'Fabricante': { role: 'ROLE_PRODUCER', type: UserType.PRODUCER },
+  'Transportista': { role: 'ROLE_MANUFACTURER', type: UserType.VEHICLE_MANUFACTURER },
+  'Distribuidor': { role: 'ROLE_DISTRIBUTOR', type: UserType.DISTRIBUTOR },
+  'Usuario': { role: 'ROLE_USER', type: UserType.USER },
+};
 
 const Register = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [email, setEmail] = useState('');
-  const [datosClient, setDatosClient] = useState<ClientData | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [ethereumAddress, setEthereumAddress] = useState('');
   const [showMetamaskMessage, setShowMetamaskMessage] = useState(false);
-
-  const roles = [
-    'Fabricante',
-    'Transportista',
-    'Distribuidor',
-    'Usuario'
-  ];
 
   const handleToggleForm = () => {
     setShowForm(!showForm);
   };
 
-  const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedRole(event.target.value);
-  };
+  const handleSubmit = async () => {
+    if (!rolesMap[selectedRole]) {
+      console.error('Rol no válido');
+      return;
+    }
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-  };
-
-  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(event.target.value);
-  };
-
-  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-  };
-
-  const handleSubmit = () => {
-    const clientData: ClientData = {
-      name: name,
-      address: address,
-      email: email,
-      role: selectedRole
+    const userData: User = {
+      ethereumAddress,
+      roles: [rolesMap[selectedRole].role],
+      type: rolesMap[selectedRole].type,
+      firstName,
+      lastName,
+      companyName,
     };
-    setDatosClient(clientData);
-    setShowForm(false);
-    setShowMetamaskMessage(true); // Mostrar mensaje de Metamask
-    console.log('Datos guardados:', clientData); // Para verificar los datos
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/register', userData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 200) {
+        console.log('Usuario registrado con éxito', userData);
+        setShowMetamaskMessage(true);
+      } else {
+        console.error('Error en el registro');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
   };
 
   return (
     <div className="w-full max-w-md">
       <div className='flex justify-center mb-4'>
-      <button 
-        onClick={handleToggleForm}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Registrar
-      </button>
+        <button 
+          onClick={handleToggleForm}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Registrar
+        </button>
       </div>
 
       {showForm && (
         <div className="mt-4 p-4 border rounded-lg shadow-md bg-white">
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Nombre
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={handleNameChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Ingrese su nombre"
-            />
+            <label className="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="Ingrese su nombre" />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Dirección
-            </label>
-            <input
-              type="text"
-              value={address}
-              onChange={handleAddressChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Ingrese su dirección"
-            />
+            <label className="block text-gray-700 text-sm font-bold mb-2">Apellido</label>
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="Ingrese su apellido" />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Email
-            </label>
-            <input
-              type="text"
-              value={email}
-              onChange={handleEmailChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Ingrese su email"
-            />
+            <label className="block text-gray-700 text-sm font-bold mb-2">Empresa</label>
+            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="Ingrese el nombre de la empresa" />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Rol
-            </label>
-            <select
-              value={selectedRole}
-              onChange={handleRoleChange}
-              className="shadow border rounded w-full py-2 px-3 text-gray-700"
-            >
+            <label className="block text-gray-700 text-sm font-bold mb-2">Dirección Ethereum</label>
+            <input type="text" value={ethereumAddress} onChange={(e) => setEthereumAddress(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="Ingrese su dirección Ethereum" />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">Rol</label>
+            <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="shadow border rounded w-full py-2 px-3 text-gray-700">
               <option value="">Selecciona un rol</option>
-              {roles.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
+              {Object.keys(rolesMap).map((role) => (
+                <option key={role} value={role}>{role}</option>
               ))}
             </select>
           </div>
@@ -131,8 +124,8 @@ const Register = () => {
           <div className="mt-6">
             <button
               onClick={handleSubmit}
-              className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={!name || !address || !selectedRole}
+              className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              disabled={!firstName || !lastName || !ethereumAddress || !selectedRole}
             >
               Confirmar Registro
             </button>
@@ -140,28 +133,9 @@ const Register = () => {
         </div>
       )}
 
-      {datosClient && (
-        <div className="mt-4 p-4 border rounded-lg bg-black-300">
-          <h3 className="font-bold text-center-green-600">¡Registro Exitoso!</h3>
-          <div className="mt-2">
-            <p>Nombre: {datosClient.name}</p>
-            <p>Dirección: {datosClient.address}</p>
-            <p>Rol: {datosClient.role}</p>
-          </div>
-          {showMetamaskMessage && (
-            <div className="bg-green-500 text-white font-bold p-2 rounded inline-block">
-              <button 
-                className="bg-green-500 hover:bg-green-700 text-white font-bold p3 rounded focus:outline-none focus:shadow-outline"
-                onClick={() => {
-                  console.log('Conectarse a Metamask');
-                  setDatosClient(null);
-                  setShowMetamaskMessage(false);
-                }}
-              >
-                Puede conectarse a Metamask
-              </button>
-            </div>
-          )}
+      {showMetamaskMessage && (
+        <div className="mt-4 p-4 border rounded-lg bg-green-500 text-white font-bold">
+          <button onClick={() => setShowMetamaskMessage(false)} className="bg-green-700 hover:bg-green-900 p-2 rounded">Puede conectarse a Metamask</button>
         </div>
       )}
     </div>
