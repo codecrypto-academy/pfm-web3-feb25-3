@@ -13,13 +13,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard, RoleType, Roles, RolesGuard } from '../../security';
 import { PasswordChangeDTO } from '../../service/dto/password-change.dto';
 import { UserDTO } from '../../service/dto/user.dto';
 import { LoggingInterceptor } from '../../client/interceptors/logging.interceptor';
 import { AuthService } from '../../service/auth.service';
 import { compareSignature } from '../../../utils/signature-utils';
+import { RegisterUserDTO } from '../../service/dto/user-register.dto';
 
 @Controller('api')
 @UseInterceptors(LoggingInterceptor, ClassSerializerInterceptor)
@@ -36,26 +37,27 @@ export class AccountController {
     description: 'User successfully registered',
     type: UserDTO,
   })
-  async registerAccount(@Req() req: Request, @Body() userDTO: UserDTO & { signature: string; nonce: string }): Promise<any> {
+  @ApiBody({ type: RegisterUserDTO })
+  async registerAccount(
+    @Req() req: Request, 
+    @Body() userDTO: RegisterUserDTO
+  ): Promise<any> {
     const { ethereumAddress, signature, nonce } = userDTO;
-
+  
     if (!ethereumAddress || !signature || !nonce) {
       throw new BadRequestException('Ethereum address, signature, and nonce are required');
     }
-
-    // Validar firma
+  
     const isValidSignature = await compareSignature(nonce, signature, ethereumAddress);
     if (!isValidSignature) {
       throw new BadRequestException('Invalid signature');
     }
-
-    // Registrar o autenticar usuario
+  
     try {
       const user = await this.authService.registerNewUser(userDTO);
       return { message: 'User registered successfully', user };
     } catch (error) {
       if (error.code === 11000) {
-        // Error de clave única en MongoDB
         throw new ConflictException('User already exists');
       }
       throw new BadRequestException(error.message);
