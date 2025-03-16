@@ -11,7 +11,7 @@ export async function compareSignature(
 ): Promise<boolean> {
   try {
     // Construir el mismo mensaje con el nonce que se firmó en el frontend
-    const message = `Nonce: ${nonce}`;
+    const message = `Signing in to CarBatteryTraceability. Nonce: ${nonce}`;
     
     // Verificar la firma con ethers.js
     const signerAddress = ethers.verifyMessage(message, signature);
