@@ -1,151 +1,126 @@
 'use client';
 
-import { UserRegisterDTO } from '@/app/entity/dto/user-auth.dto';
+import { useAuthContext } from '@/app/context/AuthContext';
+import { useState } from 'react';
+import { getMetaMaskUserData } from '@/app/services/metaMaskService';
+import { registerUser } from '@/app/services/userService';
 import { UserType } from '@/app/entity/user.entity';
-import axios from 'axios';
-import React, { useState } from 'react';
-import Web3 from 'web3';
+import { UserRegisterDTO } from '@/app/entity/dto/user-auth.dto';
 
-// Mapeo de roles
-const rolesMap: Record<string, { role: string; type: UserType }> = {
-  'Fabricante': { role: 'ROLE_PRODUCER', type: UserType.PRODUCER },
-  'Transportista': { role: 'ROLE_MANUFACTURER', type: UserType.VEHICLE_MANUFACTURER },
-  'Distribuidor': { role: 'ROLE_DISTRIBUTOR', type: UserType.DISTRIBUTOR },
-  'Usuario': { role: 'ROLE_USER', type: UserType.USER },
+const roleMappings: { [key: string]: string } = {
+  admin: 'ROLE_ADMIN',
+  user: 'ROLE_USER',
+  producer: 'ROLE_PRODUCER',
+  vehicle_manufacturer: 'ROLE_MANUFACTURER',
+  distributor: 'ROLE_DISTRIBUTOR',
+  owner: 'ROLE_OWNER',
+  recycler: 'ROLE_RECYCLER',
+  transporter: 'ROLE_TRANSPORTER',
 };
 
 const Register = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('');
+  const [userData, setUserData] = useState<{ ethereumAddress: string; signature: string; nonce: string } | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [ethereumAddress, setEthereumAddress] = useState('');
-  const [nonce, setNonce] = useState(0);
-  const [signature, setSignature] = useState('');
-
-  const handleToggleForm = () => {
-    setShowForm(!showForm);
-  };
+  const [userType, setUserType] = useState<UserType | ''>('');
+  const [roles, setRoles] = useState<string[]>([]);
+  const { login } = useAuthContext();
 
   const connectMetamask = async () => {
-    if (!window.ethereum) {
-      alert('MetaMask no está instalado');
-      return;
-    }
-
-    const web3 = new Web3(window.ethereum as any);
-
-    try {
-      // 1. Conectarse a Metamask
-      const accounts: any = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      if (!accounts || accounts.length === 0) {
-        alert('No se encontraron cuentas en MetaMask');
-        return;
-      }
-      const account = accounts[0];
-      setEthereumAddress(account);
-
-      // 2. Generar nonce
-      const nonce: number = Math.floor(Math.random() * 1000000);
-      setNonce(nonce);
-
-      // 3. Firmar nonce con Metamask
-      const message = `Nonce: ${nonce}`;
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, account]
-      }) as string;
-      setSignature(signature);
-
-    } catch (error) {
-      console.error('Error al conectar Metamask:', error);
+    const data = await getMetaMaskUserData();
+    if (data) {
+      setUserData(data);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!rolesMap[selectedRole]) {
-      console.error('Rol no válido');
-      return;
-    }
+  const handleRoleChange = (role: string) => {
+    setRoles((prevRoles) =>
+      prevRoles.includes(roleMappings[role])
+        ? prevRoles.filter((r) => r !== roleMappings[role])
+        : [...prevRoles, roleMappings[role]]
+    );
+  };
 
-    const userData: UserRegisterDTO = { 
-      ethereumAddress,
-      roles: [rolesMap[selectedRole].role],
-      type: rolesMap[selectedRole].type,
-      firstName,
-      lastName,
-      companyName,
-      nonce,
-      signature
-    };
-
-    try {
-      const response = await axios.post('http://localhost:8080/api/register', userData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 201) {
-        console.log('Usuario registrado con éxito');
-      } else {
-        console.error('Error en el registro');
-      }
-    } catch (error) {
-      console.error('Error en la solicitud:', error);
+  const handleRegister = async () => {
+    if (userData) {
+      const userRegisterData: UserRegisterDTO = {
+        ethereumAddress: userData.ethereumAddress,
+        signature: userData.signature,
+        nonce: userData.nonce,
+        firstName,
+        lastName,
+        companyName,
+        type: userType as UserType,
+        roles,
+      };
+      
+      await registerUser(userRegisterData);
     }
   };
 
   return (
-    <div className="w-full max-w-md">
-      <div className='flex justify-center mb-4'>
-        <button 
-          onClick={connectMetamask}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Conectar con Metamask
-        </button>
-      </div>
-
-      {ethereumAddress && (
-        <div className="mt-4 p-4 border rounded-lg shadow-md bg-white">
-          <p className="mb-4">Dirección: {ethereumAddress}</p>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" />
+    <div className="max-w-md mx-auto p-6 bg-gray-900 text-white shadow-md rounded-lg">
+      <h2 className="text-xl font-semibold mb-4 text-center">Registro de Usuario</h2>
+      <button
+        onClick={connectMetamask}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-4"
+      >
+        Conectar con MetaMask
+      </button>
+      {userData && (
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full border rounded p-2 bg-gray-800 text-white"
+          />
+          <input
+            type="text"
+            placeholder="Apellido"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full border rounded p-2 bg-gray-800 text-white"
+          />
+          <input
+            type="text"
+            placeholder="Nombre de la empresa"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className="w-full border rounded p-2 bg-gray-800 text-white"
+          />
+          <select
+            value={userType}
+            onChange={(e) => setUserType(e.target.value as UserType)}
+            className="w-full border rounded p-2 bg-gray-800 text-white"
+          >
+            <option value="">Selecciona el tipo de usuario</option>
+            {Object.values(UserType).map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+          <div className="border p-4 rounded bg-gray-800">
+            <h3 className="text-sm font-semibold mb-2">Selecciona los roles:</h3>
+            {Object.keys(roleMappings).map((role) => (
+              <label key={role} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  value={role}
+                  checked={roles.includes(roleMappings[role])}
+                  onChange={() => handleRoleChange(role)}
+                />
+                {role}
+              </label>
+            ))}
           </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Apellido</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Empresa</label>
-            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Rol</label>
-            <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="shadow border rounded w-full py-2 px-3 text-gray-700">
-              <option value="">Selecciona un rol</option>
-              {Object.keys(rolesMap).map((role) => (
-                <option key={role} value={role}>{role}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-6">
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-              disabled={!firstName || !lastName || !selectedRole}
-            >
-              Confirmar Registro
-            </button>
-          </div>
+          <button
+            onClick={handleRegister}
+            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          >
+            Registrarse
+          </button>
         </div>
       )}
     </div>

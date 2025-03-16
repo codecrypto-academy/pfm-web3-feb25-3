@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ClientLayout from "./clientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Trazabilidad PFM-2025",
-  description: 'Sistema de trazabilidad para baterías de vehículos eléctricos utilizando tecnología blockchain',
-  keywords: ['trazabilidad', 'baterías', 'vehículos eléctricos', 'blockchain'],
+  description: "Sistema de trazabilidad para baterías de vehículos eléctricos utilizando tecnología blockchain",
+  keywords: ["trazabilidad", "baterías", "vehículos eléctricos", "blockchain"],
 };
 
 export default function RootLayout({
@@ -25,10 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ClientLayout> {/* ✅ Envolver con el nuevo componente */}
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

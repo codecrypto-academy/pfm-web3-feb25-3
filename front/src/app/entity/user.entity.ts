@@ -17,5 +17,6 @@ export enum UserType {
 	DISTRIBUTOR = 'distributor',
 	OWNER = 'owner',
 	RECYCLER = 'recycler',
+  TRANSPORTER = "TRANSPORTER",
 	}
 
