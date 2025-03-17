@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": ".ts,.js",
+  "ignore": ["dist/*", "node_modules/*"],
+  "exec": "npm run build && fabric-chaincode-node server --chaincode-address=0.0.0.0:9998 --chaincode-id=basicts_1.0:a6f5936375b18e01a9ee52bac4604cd17d2f7b5eb331dd046ce70fd789d0b8fb"
+} 
