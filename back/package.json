@@ -37,6 +37,8 @@
     "default_environment": "prod"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.13.0",
+    "@hyperledger/fabric-gateway": "^1.7.1",
     "car-battery-traceability": "file:",
     "concurrently": "^9.1.2",
     "ethers": "^6.13.5"
