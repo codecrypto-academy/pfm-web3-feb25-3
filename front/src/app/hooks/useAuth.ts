@@ -11,8 +11,9 @@ export const useAuth = () => {
     const userData = await getAuthenticatedUser();
     setUser(userData);
   };
-
-  const logout = async () => {
+  const logout = () => {
+    localStorage.removeItem('jwt');
+  /*const logout = async () => {
     try {
       // Limpiar el estado de autenticación
       setUser(null);
@@ -22,7 +23,8 @@ export const useAuth = () => {
       window.location.href = '/';
     } catch (error) {
       console.error('Error durante el logout:', error);
-    }
+    }*/
+   setUser(null);
   };
   
   useEffect(() => {
