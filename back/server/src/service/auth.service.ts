@@ -9,7 +9,7 @@ import { UserService } from '../service/user.service';
 import { UserDTO } from './dto/user.dto';
 
 import { compareSignature } from '../../utils/signature-utils'; 
-import { ObjectId } from 'mongodb';
+import { FabricCAClient } from '../client/fabric-ca-client';
 
 
 @Injectable()
@@ -19,6 +19,7 @@ export class AuthService {
 		private readonly jwtService: JwtService,
 		@InjectRepository(Authority) private authorityRepository: Repository<Authority>,
 		private readonly userService: UserService,
+		private readonly fabricCAClient: FabricCAClient,
 	) {}
 
 	async login(userLogin: UserLoginDTO): Promise<any> {
@@ -76,21 +77,23 @@ c
 	async registerNewUser(newUser: UserDTO): Promise<UserDTO> {
 		// Verificar si la dirección Ethereum ya está registrada
 		let userFind: UserDTO = await this.userService.findByFields({ where: { ethereumAddress: newUser.ethereumAddress } });
-
-		// Si la dirección Ethereum ya existe, lanzamos un error
+	
 		if (userFind) {
-			throw new HttpException('Ethereum address is already in use!', HttpStatus.BAD_REQUEST);
+		  throw new HttpException('Ethereum address is already in use!', HttpStatus.BAD_REQUEST);
 		}
-
-		// Definir el rol por defecto del usuario (por ejemplo, 'ROLE_USER')
-		newUser.roles = ['ROLE_USER'];
-
-		// Aquí puedes guardar el usuario. Podrías hacerlo por medio de un servicio.
-		const user: UserDTO = await this.userService.save(newUser);
-
+	
+		// Definir el rol basado en el tipo de usuario (puede venir en `newUser.role`)
+		const role = newUser.roles[0] || 'ROLE_USER';
+	
+		// Registrar el usuario en Fabric CA
+		// //  await this.fabricCAClient.registerUser(newUser.ethereumAddress, role);
+		
+		// Guardar el usuario en la base de datos
+		newUser.roles = [role];
+		const user = await this.userService.save(newUser);
+	
 		return user;
-	}
-
+	  }
 
 
 
