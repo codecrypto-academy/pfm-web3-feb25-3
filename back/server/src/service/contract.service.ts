@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { FabricClient } from '../client/FabricClient';
+import { FabricClient } from '../client/fabric-chaincode-client';
 
 @Injectable()
 export class ContractService {

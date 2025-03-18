@@ -11,6 +11,7 @@ import { Authority } from '../domain/authority.entity';
 
 import { PublicUserController } from '../web/rest/public.user.controller';
 import { AccountController } from '../web/rest/account.controller';
+import { FabricClientModule } from './fabric-client.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AccountController } from '../web/rest/account.controller';
       secret: config['jhipster.security.authentication.jwt.base64-secret'],
       signOptions: { expiresIn: '300s' },
     }),
+    FabricClientModule,
   ],
   controllers: [UserJWTController, PublicUserController, AccountController],
   providers: [AuthService, JwtStrategy],

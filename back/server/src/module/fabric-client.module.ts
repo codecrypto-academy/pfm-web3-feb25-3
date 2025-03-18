@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { FabricClient } from '../client/FabricClient';
+import { FabricClient } from '../client/fabric-chaincode-client';
+import { FabricCAClient } from '../client/fabric-ca-client';
 
 @Module({
   providers: [
@@ -7,7 +8,8 @@ import { FabricClient } from '../client/FabricClient';
       provide: FabricClient,
       useFactory: () => new FabricClient('basicts', 'mychannel'),
     },
+    FabricCAClient, 
   ],
-  exports: [FabricClient],
+  exports: [FabricClient, FabricCAClient],
 })
 export class FabricClientModule {}

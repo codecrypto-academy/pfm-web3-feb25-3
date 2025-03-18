@@ -6,12 +6,12 @@ import { UserType } from '../domain/enum/user-type.enum';
 export class SeedUsersRoles1570200490072 implements MigrationInterface {
 	roleAdmin: Authority = { name: 'ROLE_ADMIN' };
 	roleUser: Authority = { name: 'ROLE_USER' }; 
-	roleProducer: Authority = { name: 'ROLE_PRODUCER' }; // Fabricante
-	roleManufacturer: Authority = { name: 'ROLE_MANUFACTURER' }; // Vehículo fabricante
-	roleDistributor: Authority = { name: 'ROLE_DISTRIBUTOR' }; // Distribuidor
-	roleOwner: Authority = { name: 'ROLE_OWNER' }; // Propietario
-	roleTrasnport: Authority = { name: 'ROLE_TRANSPORT' }; // Transportista
-	roleRecycler: Authority = { name: 'ROLE_RECYCLER' }; // Reciclador
+	roleProducer: Authority = { name: 'ROLE_PRODUCER' }; // Fabricante // ORG 1
+	roleManufacturer: Authority = { name: 'ROLE_MANUFACTURER' }; // Vehículo fabricante // ORG 1
+	roleDistributor: Authority = { name: 'ROLE_DISTRIBUTOR' }; // Distribuidor // ORG 2
+	roleOwner: Authority = { name: 'ROLE_OWNER' }; // Propietario // ORG 2
+	roleTrasnport: Authority = { name: 'ROLE_TRANSPORT' }; // Transportista // ORG 2
+	roleRecycler: Authority = { name: 'ROLE_RECYCLER' }; // Reciclador // ORG 2
 
 	public async up(queryRunner: QueryRunner): Promise<void> {
 		const authorityRepository = queryRunner.connection.getRepository(Authority);

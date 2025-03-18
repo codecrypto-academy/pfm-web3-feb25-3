@@ -22,7 +22,7 @@
     "prettier:check": "prettier --check \"{,src/**/}*.{md,json,yml,js,cjs,mjs,ts,cts,mts}\"",
     "prettier:format": "prettier --write \"{,src/**/}*.{md,json,yml,js,cjs,mjs,ts,cts,mts}\"",
     "services:up": "docker compose -f docker/services.yml up --wait",
-    "start": "concurrently -k -s first -n application,client -c red,green npm:start:server npm:start:client",
+    "start": "npm run start:server",
     "start:client": "npm run start -w client",
     "start:debug": "npm run debug -w server",
     "start:server": "npm run start -w server",
@@ -41,7 +41,9 @@
     "@hyperledger/fabric-gateway": "^1.7.1",
     "car-battery-traceability": "file:",
     "concurrently": "^9.1.2",
-    "ethers": "^6.13.5"
+    "ethers": "^6.13.5",
+    "fabric-ca-client": "^2.2.20",
+    "fabric-network": "^2.2.20"
   },
   "devDependencies": {
     "@eslint/js": "9.20.0",
