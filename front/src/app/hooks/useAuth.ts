@@ -12,11 +12,19 @@ export const useAuth = () => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem('jwt');
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Limpiar el estado de autenticación
+      setUser(null);
+      // Limpiar el token si lo almacenas en localStorage
+      localStorage.removeItem('token');
+      // Redirigir al inicio
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error durante el logout:', error);
+    }
   };
-
+  
   useEffect(() => {
     const fetchUser = async () => {
       try {
