@@ -12,11 +12,11 @@ export interface User {
 export enum UserType {
 	ADMIN = 'admin',
 	USER = 'user',
-	PRODUCER = 'producer',
-	VEHICLE_MANUFACTURER = 'vehicle_manufacturer',
-	DISTRIBUTOR = 'distributor',
-	OWNER = 'owner',
-	RECYCLER = 'recycler',
-  TRANSPORTER = "TRANSPORTER",
+	PRODUCER = 'producer', //fabrica
+	//VEHICLE_MANUFACTURER = 'vehicle_manufacturer',
+	DISTRIBUTOR = 'distributor',//rratiler
+	OWNER = 'owner', //usuario 
+	//RECYCLER = 'recycler',
+  TRANSPORTER = "TRANSPORTER",//trtasnportista
 	}
 
