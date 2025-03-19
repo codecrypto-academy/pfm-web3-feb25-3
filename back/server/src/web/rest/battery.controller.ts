@@ -43,7 +43,6 @@ import { BatteryService } from '../../service/battery.service';
   
     // Crear una nueva batería
     @Post('/')
-    @Roles(RoleType.PRODUCER)
     @ApiOperation({ summary: 'Create a new battery' })
     @ApiResponse({
       status: 201,
@@ -55,10 +54,12 @@ import { BatteryService } from '../../service/battery.service';
       HeaderUtil.addEntityCreatedHeaders(req.res, 'Battery', created.id);
       return created;
     }
+
+
+    @Post('')
   
     // Actualizar una batería
     @Put('/')
-    @Roles(RoleType.ADMIN, RoleType.PRODUCER, RoleType.MANUFACTURER)
     @ApiOperation({ summary: 'Update a battery' })
     @ApiResponse({
       status: 200,
@@ -84,7 +85,6 @@ import { BatteryService } from '../../service/battery.service';
   
     // Obtener una batería por número de serie
     @Get('/:serialNumber')
-    @Roles(RoleType.ADMIN, RoleType.PRODUCER, RoleType.MANUFACTURER, RoleType.DISTRIBUTOR, RoleType.OWNER, RoleType.RECYCLER)
     @ApiOperation({ summary: 'Get a battery by serial number' })
     @ApiResponse({
       status: 200,
@@ -97,7 +97,6 @@ import { BatteryService } from '../../service/battery.service';
   
     // Eliminar una batería por número de serie
     @Delete('/:serialNumber')
-    @Roles(RoleType.ADMIN)
     @ApiOperation({ summary: 'Delete a battery' })
     @ApiResponse({
       status: 204,

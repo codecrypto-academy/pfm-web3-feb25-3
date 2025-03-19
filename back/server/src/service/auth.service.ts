@@ -81,12 +81,12 @@ c
 		if (userFind) {
 		  throw new HttpException('Ethereum address is already in use!', HttpStatus.BAD_REQUEST);
 		}
-	
+		
 		// Definir el rol basado en el tipo de usuario (puede venir en `newUser.role`)
 		const role = newUser.roles[0] || 'ROLE_USER';
 	
 		// Registrar el usuario en Fabric CA
-		// //  await this.fabricCAClient.registerUser(newUser.ethereumAddress, role);
+		 await this.fabricCAClient.registerUser(newUser.ethereumAddress, role, 'Org1MSP');
 		
 		// Guardar el usuario en la base de datos
 		newUser.roles = [role];

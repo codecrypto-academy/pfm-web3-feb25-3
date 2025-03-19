@@ -1,126 +1,91 @@
-# 🚗🔋 Plataforma de Trazabilidad de Baterías de Coches Eléctricos
+🚗🔋 Plataforma de Trazabilidad de Baterías de Coches Eléctricos con Hyperledger Fabric
+🎯 Objetivo
+Crear un sistema descentralizado que permita rastrear el ciclo de vida de las baterías desde la producción hasta su reciclaje, asegurando autenticidad, sostenibilidad y cumplimiento normativo.
 
-## 📌 Descripción
-Este repositorio contiene la **Plataforma de Trazabilidad de Baterías de Coches Eléctricos**, un sistema descentralizado basado en **Hyperledger Fabric** que permite rastrear el ciclo de vida de las baterías desde su producción hasta su reciclaje.
 
-## 🎯 Objetivo
-Garantizar la autenticidad, sostenibilidad y cumplimiento normativo en la gestión de baterías de vehículos eléctricos mediante blockchain.
+Los siguientes Roles son los siguientes:
+  admin: 'ROLE_ADMIN', // Administrador
+  user: 'ROLE_USER', 
+  producer: 'ROLE_PRODUCER', // Fabricante de Baterías
+  vehicle_manufacturer: 'ROLE_MANUFACTURER', // Fabricante de Vehículos
+  distributor: 'ROLE_DISTRIBUTOR', // Distribuidor / Concesionario
+  owner: 'ROLE_OWNER',  // Usuario Final
+  recycler: 'ROLE_RECYCLER', // Reciclador / Reutilizador 
+  transporter: 'ROLE_TRANSPORTER', // El encargado de movilizar las baterias entre producer, vehicle_manufacturer, 
+    // Hay una entidad shipment en la que se ejecutara cada vez que ejecutemos algo aqui 
+📌 Actores del Sistema
+1️⃣ Productor (Fabricante de Baterías)
+Registra cada batería con un identificador único (ID de batería).
+Incluye metadatos: capacidad, materiales usados, certificaciones de seguridad, etc.
+Solo puede transferir baterías a fabricantes de coches o distribuidores.
+2️⃣ Fabricante de Vehículos
+Recibe baterías del productor.
+Instala las baterías en coches eléctricos y registra la vinculación con el vehículo.
+Solo puede transferir el coche con batería a concesionarios o distribuidores.
+3️⃣ Distribuidor / Concesionario
+Recibe los vehículos con sus baterías registradas.
+Vende vehículos a clientes finales o flotas de empresas.
+Solo puede transferir el coche con batería a consumidores.
+4️⃣ Propietario del Vehículo (Usuario Final)
+Puede verificar la trazabilidad de la batería.
+Cuando la batería alcanza el final de su vida útil, puede enviarla a reciclaje o reutilización.
+Puede transferir la batería a recicladores o a otra empresa de reutilización.
+5️⃣ Reciclador / Reutilizador
+Recibe baterías usadas.
+Procesa baterías para extracción de materiales o reutilización en otras aplicaciones (almacenamiento energético, por ejemplo).
+Puede registrar la conversión de la batería en otros activos o eliminar su registro si se destruye.
+⚙️ Funcionalidades Clave
+1️⃣ Gestión de Identidad
+✅ Cada actor tiene una identidad única con certificados X.509.
+✅ Control de acceso basado en roles mediante políticas de endorsement.
 
----
+2️⃣ Registro de Activos
+🔋 Baterías:
 
-## 📂 Estructura del Proyecto
+Cada batería tiene un registro único con metadatos: capacidad, voltaje, fecha de fabricación, ID de celdas, etc.
+Registro de cambios en el estado de la batería (uso, carga/descarga, salud, etc.).
+🔄 Reciclaje o Reutilización:
 
-```
-.
-├── front/        # Frontend en Next.js
-│   ├── pages/
-│   ├── components/
-│   ├── public/
-│   ├── styles/
-│   ├── README.md
-│   └── .env.local
-│
-├── back/         # Backend en Node.js con Hyperledger Fabric SDK
-│   ├── src/
-│   ├── controllers/
-│   ├── routes/
-│   ├── README.md
-│   └── .env
-│
-└── blockchain/   # Configuración de Hyperledger Fabric
-    ├── chaincode/
-    ├── network/
-    └── organizations/
-```
+Registro de baterías que se han reciclado o reutilizado.
+Seguimiento de materiales extraídos para trazabilidad de la economía circular.
+3️⃣ Sistema de Transferencias
+🔗 Trazabilidad de la propiedad:
 
----
+Transferencias controladas según los roles: productor → fabricante → distribuidor → usuario → reciclador.
+Validación mediante endorsement policies.
+Registro de cambios de estado de la batería (uso, reparación, degradación).
+4️⃣ Visualización de la Trazabilidad
+👁️ Historial completo de la batería:
 
-## 🚀 Tecnologías Utilizadas
+Visualización de toda la cadena de custodia.
+Consultas para verificar la procedencia y estado actual.
+🛠️ Arquitectura Técnica
+1️⃣ Frontend - Plataforma Web
+📌 Framework: Next.js
+📌 Características:
 
-- **Frontend:** Next.js, TypeScript, Tailwind CSS
-- **Backend:** Node.js, Express, Hyperledger Fabric SDK
-- **Blockchain:** Hyperledger Fabric
-- **Base de datos:** CouchDB (para Fabric World State)
-- **Autenticación:** Fabric CA con certificados X.509
-- **Despliegue:** Vercel (Frontend) y Docker (Backend)
+Dashboard por rol (Fabricante, Distribuidor, Usuario, Reciclador).
+Integración con Fabric SDK para interactuar con la blockchain.
+2️⃣ Chaincode (Smart Contracts en Hyperledger Fabric)
+📝 Funcionalidades:
 
----
+Registro de baterías y metadatos.
+Transferencia de propiedad según roles.
+Registro del estado de salud de la batería.
+Registro de reciclaje o reutilización.
+3️⃣ Red Blockchain (Hyperledger Fabric)
+🌐 Configuración de Red
 
-## 📌 Funcionalidades Principales
+Organizaciones: Productores, Fabricantes, Distribuidores, Usuarios, Recicladores.
+Canales: Diferentes canales para compartir información relevante entre actores.
+Fabric CA para autenticación y gestión de certificados.
+🚀 Despliegue
+✅ Red Fabric
 
-### 🔋 Gestión de Baterías
-- Registro de baterías con metadatos (capacidad, voltaje, fecha de fabricación, etc.).
-- Seguimiento del estado de salud y cambios de propiedad.
-- Registro de baterías recicladas o reutilizadas.
+Uso de Fabric Samples para despliegue inicial.
+Configuración de organizaciones y canales.
+Hyperledger Explorer para monitoreo.
+✅ Frontend
 
-### 🔗 Transferencias y Trazabilidad
-- Control de propiedad de las baterías mediante smart contracts.
-- Validación de transacciones con endorsement policies.
-- Historial completo de la batería con consultas avanzadas.
-
----
-
-## 🏗️ Instalación y Configuración
-
-### 🔧 Requisitos Previos
-- Node.js 18+
-- Yarn o npm
-- Docker (para backend y blockchain)
-- Hyperledger Fabric configurado y en ejecución
-
-### 📦 Instalación del Proyecto
-
-#### 1️⃣ Clonar el repositorio
-```sh
-git clone https://github.com/tu-repo/trazabilidad-baterias.git
-cd trazabilidad-baterias
-```
-
-#### 2️⃣ Configurar e iniciar el backend
-```sh
-cd back
-yarn install  # o npm install
-yarn dev
-```
-El backend estará disponible en `http://localhost:3001`.
-
-#### 3️⃣ Configurar e iniciar el frontend
-```sh
-cd ../front
-yarn install  # o npm install
-yarn dev
-```
-El frontend estará disponible en `http://localhost:3000`.
-
----
-
-## 🚀 Despliegue
-
-### 🔹 Backend (Docker)
-```sh
-docker build -t backend-trazabilidad ./back
-docker run -p 3001:3001 --env-file ./back/.env backend-trazabilidad
-```
-
-### 🔹 Frontend (Vercel)
-1. Conectar el repositorio con Vercel.
-2. Configurar variables de entorno.
-3. Desplegar automáticamente con cada push a `main`.
-
----
-
-## 🛠️ Contribución
-1. Hacer un fork del repositorio.
-2. Crear una nueva rama (`feature/nueva-funcionalidad`).
-3. Hacer commit de los cambios (`git commit -m 'Añadir nueva funcionalidad'`).
-4. Enviar un Pull Request.
-
----
-
-## 📄 Licencia
-Este proyecto está bajo la licencia **MIT**.
-
----
-
-## 📞 Contacto
-Si tienes dudas o sugerencias, puedes escribir a: [email@example.com](mailto:email@example.com).
+Hospedado en Vercel.
+Configuración de dominios y certificados SSL/TLS.
