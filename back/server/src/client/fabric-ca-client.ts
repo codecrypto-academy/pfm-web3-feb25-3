@@ -1,212 +1,143 @@
 import FabricCAServices from 'fabric-ca-client';
 import { Wallets, X509Identity } from 'fabric-network';
-import { User, ICryptoSuite, Utils, ICryptoKey, IKeyValueStore } from 'fabric-common';
+import { User, ICryptoSuite, Utils } from 'fabric-common';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-// Ruta de la wallet donde se almacenan las identidades
-const walletPath = path.resolve(__dirname, '../../wallet');
-const orgBasePath = path.resolve(__dirname, '../../../../fabric-samples/test-network/organizations/peerOrganizations');
-const caBasePath = path.resolve(__dirname, '../../../../fabric-samples/test-network/organizations/fabric-ca');
+// Constantes globales
+const WALLET_PATH = path.resolve(__dirname, '../../wallet');
+const ORG_BASE_PATH = path.resolve(__dirname, '../../../../fabric-samples/test-network/organizations/peerOrganizations');
+const CA_BASE_PATH = path.resolve(__dirname, '../../../../fabric-samples/test-network/organizations/fabric-ca');
+const CA_CONFIG = {
+    Org1MSP: { url: 'https://localhost:7054', tlsPath: 'org1/tls-cert.pem', name: 'ca-org1' },
+    Org2MSP: { url: 'https://localhost:8054', tlsPath: 'org2/tls-cert.pem', name: 'ca-org2' },
+};
 
-/*
-El término enroll en Fabric CA se refiere al proceso de inscripción de un usuario en la autoridad certificadora (CA) para obtener su certificado digital (cert.pem).
-Este certificado es lo que le permite autenticarse en la red de Hyperledger Fabric.
-*/
 export class FabricCAClient {
 
-  private async getFabricCA(mspId: string): Promise<FabricCAServices> {
-    let caUrl, tlsCertPath, caName;
-
-    if (mspId === 'Org1MSP') {
-        caUrl = 'https://localhost:7054';
-        tlsCertPath = path.resolve(caBasePath, 'org1', 'tls-cert.pem');
-        caName = 'ca-org1'; // Agrega el nombre de la CA
-    } else {
-        caUrl = 'https://localhost:8054';
-        tlsCertPath = path.resolve(caBasePath, 'org2', 'tls-cert.pem');
-        caName = 'ca-org2'; // Agrega el nombre de la CA
+    private async getFabricCA(mspId: string): Promise<FabricCAServices> {
+        const caInfo = CA_CONFIG[mspId];
+        if (!caInfo) throw new Error(`MSP ID ${mspId} no soportado`);
+        
+        const tlsCertPath = path.resolve(CA_BASE_PATH, caInfo.tlsPath);
+        const tlsCert = await fs.readFile(tlsCertPath, 'utf8');
+        
+        return new FabricCAServices(caInfo.url, { trustedRoots: [tlsCert], verify: false }, caInfo.name);
     }
 
-    // Leer el certificado TLS
-    const tlsCert = await fs.readFile(tlsCertPath, 'utf8');
+    async fabricClientLoginUser(ethereumAddress: string, mspId: string): Promise<boolean> {
+      const ca = await this.getFabricCA(mspId);
+      const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
 
-    // Configurar opciones TLS para la conexión con Fabric CA
-    const caOptions = {
-        trustedRoots: [tlsCert],
-        verify: false, // Cambiar a true si quieres validación estricta de certificados
-    };
+      // Verificar si el usuario está en la wallet
+      const existingIdentity = await wallet.get(ethereumAddress);
+      if (existingIdentity) {
+          console.log(`✅ Usuario ${ethereumAddress} encontrado en la wallet`);
+          return true;
+      }
 
-    return new FabricCAServices(caUrl, caOptions, caName); // ✅ Agregar nombre de CA
-}
-
-
-	/**
-		* Obtiene la identidad del administrador como un objeto `User` válido para Fabric CA.
-		*/
-		private async getAdminIdentity(mspId: string): Promise<User> {
-			const wallet = await Wallets.newFileSystemWallet(walletPath);
-			const adminLabel = `admin-${mspId}`;
-
-			// 📌 Intentar obtener el admin desde la wallet
-			let identity = await wallet.get(adminLabel) as X509Identity;
-			if (!identity) {
-				console.log(`⚠️ No se encontró la identidad del administrador en la wallet. Buscando en organizations...`);
-
-				// 📌 **Importar admin desde `organizations/peerOrganizations/.../users/`**
-				const orgName = mspId === 'Org1MSP' ? 'org1.example.com' : 'org2.example.com';
-				const adminPath = path.join(orgBasePath, orgName, 'users', `Admin@${orgName}`, 'msp');
-				const certPath = path.join(adminPath, 'signcerts', `cert.pem`);
-				const keyDir = path.join(adminPath, 'keystore');
-
-				// 📌 **Leer certificado y clave privada del administrador**
-				const certificate = await fs.readFile(certPath, 'utf8');
-				const keyFiles = await fs.readdir(keyDir);
-				if (keyFiles.length === 0) {
-					throw new Error(`❌ No se encontró clave privada en ${keyDir}`);
-				}
-				const privateKeyPEM = await fs.readFile(path.join(keyDir, keyFiles[0]), 'utf8');
-
-				// 📌 **Crear identidad X.509 para la wallet**
-				const adminIdentity: X509Identity = {
-					credentials: { certificate, privateKey: privateKeyPEM },
-					mspId: mspId,
-					type: 'X.509',
-				};
-
-				// 📌 **Guardar la identidad en la wallet para futuros usos**
-				await wallet.put(adminLabel, adminIdentity);
-				console.log(`✅ Admin ${adminLabel} importado y guardado en la wallet`);
-
-				identity = adminIdentity;
-			} else {
-				console.log(`✅ Admin ${adminLabel} encontrado en la wallet`);
-			}
-
-			// 📌 **Configurar `CryptoSuite` correctamente**
-			const cryptoSuite: ICryptoSuite = Utils.newCryptoSuite();
-			const cryptoKeyStore = Utils.newCryptoKeyStore();
-			cryptoSuite.setCryptoKeyStore(cryptoKeyStore);
-
-			// 🔥 ✅ **Ahora `importKey()` funcionará sin errores**
-			const privateKey = await cryptoSuite.importKey(identity.credentials.privateKey);
-
-			// 📌 **Crear objeto `User` válido**
-			const adminUser = new User(adminLabel);
-			await adminUser.setEnrollment(privateKey, identity.credentials.certificate, mspId);
-			adminUser.setCryptoSuite(cryptoSuite);
-
-			console.log(`✅ Admin ${adminLabel} listo para usar en Fabric CA`);
-			return adminUser;
-		}
+      try {
+          await ca.newIdentityService().getOne(ethereumAddress, await this.getAdminIdentity(mspId));
+          console.log(`✅ Usuario ${ethereumAddress} existe en Fabric CA pero no en la wallet`);
+          return true;
+      } catch {
+          console.log(`❌ Usuario ${ethereumAddress} no encontrado en Fabric CA`);
+          return false;
+      }
+  }
 
 
+    private async getAdminIdentity(mspId: string): Promise<User> {
+        const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
+        const adminLabel = `admin-${mspId}`;
+        let identity = await wallet.get(adminLabel) as X509Identity;
 
+        if (!identity) {
+            console.log(`⚠️ No se encontró la identidad del administrador en la wallet. Importando...`);
+            
+            const orgName = mspId === 'Org1MSP' ? 'org1.example.com' : 'org2.example.com';
+            const adminPath = path.join(ORG_BASE_PATH, orgName, 'users', `Admin@${orgName}`, 'msp');
+            
+            const certificate = await fs.readFile(path.join(adminPath, 'signcerts', 'cert.pem'), 'utf8');
+            const keyFiles = await fs.readdir(path.join(adminPath, 'keystore'));
+            if (!keyFiles.length) throw new Error(`❌ No se encontró clave privada en ${adminPath}/keystore`);
+            const privateKeyPEM = await fs.readFile(path.join(adminPath, 'keystore', keyFiles[0]), 'utf8');
+            
+            identity = { credentials: { certificate, privateKey: privateKeyPEM }, mspId, type: 'X.509' };
+            await wallet.put(adminLabel, identity);
+        }
 
-	async registerUser(ethereumAddress: string, role: string, mspId: string): Promise<X509Identity> {
-		const ca = await this.getFabricCA(mspId);
-		const wallet = await Wallets.newFileSystemWallet(walletPath);
-		const adminIdentity = await this.loginWithUserIDAndPassword('admin', 'adminpw', mspId);
+        return this.createUserFromIdentity(adminLabel, identity);
+    }
 
-		console.log(`Registrando usuario ${ethereumAddress} con rol ${role} en ${mspId}`);
+    async registerUser(ethereumAddress: string, role: string, mspId: string): Promise<X509Identity> {
+        const ca = await this.getFabricCA(mspId);
+        const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
+        const adminIdentity = await this.loginWithUserIDAndPassword('admin', 'adminpw', mspId);
 
-		// Verificar si el usuario ya existe en la wallet
-		const userIdentity = await wallet.get(ethereumAddress);
-		if (userIdentity) {
-			console.log(`Usuario ${ethereumAddress} ya existe en la wallet`);
-			return userIdentity as X509Identity;
-		}
+        if (await wallet.get(ethereumAddress)) {
+            console.log(`Usuario ${ethereumAddress} ya existe en la wallet`);
+            return await wallet.get(ethereumAddress) as X509Identity;
+        }
 
-		const provider = ca.newIdentityService();
-		try {
-			await provider.getOne(ethereumAddress, adminIdentity);
-			console.log(`Usuario ${ethereumAddress} ya existe en Fabric CA`);
-			return userIdentity as X509Identity;
-		} catch (error) {
-			console.log(`Usuario no encontrado en CA, se procederá al registro.`);
-		}
+        try {
+            await ca.newIdentityService().getOne(ethereumAddress, adminIdentity);
+            console.log(`Usuario ${ethereumAddress} ya existe en Fabric CA`);
+            return await wallet.get(ethereumAddress) as X509Identity;
+        } catch {
+            console.log(`Usuario no encontrado en CA, procediendo al registro.`);
+        }
 
-		// ✅ 🔥 Corrección: Ahora `adminIdentity` es un `User` válido para Fabric CA
-		const secret = await ca.register(
-			{
-				enrollmentID: ethereumAddress,
-				role: 'client',
-				affiliation: '', // Importante dejarlo vacío si no usas afiliaciones
-				attrs: [
-					{ name: 'role', value: role, ecert: true },
-					{ name: 'ethAddress', value: ethereumAddress, ecert: true },
-				],
-			},
-			adminIdentity // ✅ Ahora adminIdentity es un `User`, no una `X509Identity`
-		);
+        const secret = await ca.register({
+            enrollmentID: ethereumAddress,
+            role: 'client',
+            affiliation: '',
+            attrs: [
+                { name: 'role', value: role, ecert: true },
+                { name: 'ethAddress', value: ethereumAddress, ecert: true },
+            ],
+        }, adminIdentity);
 
-		// Enrolar el usuario y obtener sus credenciales
-		const enrollment = await ca.enroll({
-			enrollmentID: ethereumAddress,
-			enrollmentSecret: secret,
-		});
+        return this.enrollAndStoreUser(ca, ethereumAddress, secret, mspId);
+    }
 
-		// Crear y almacenar la identidad en la wallet
-		const newUserIdentity: X509Identity = {
-			credentials: {
-				certificate: enrollment.certificate,
-				privateKey: enrollment.key.toBytes(),
-			},
-			mspId: mspId,
-			type: 'X.509',
-		};
+    async loginWithUserIDAndPassword(userID: string, password: string, mspId: string): Promise<User> {
+        const ca = await this.getFabricCA(mspId);
+        const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
 
-		await wallet.put(ethereumAddress, newUserIdentity);
-		console.log(`Usuario ${ethereumAddress} registrado y enrolado con éxito en ${mspId}`);
-		return newUserIdentity;
-	}
+        try {
+            const enrollment = await ca.enroll({ enrollmentID: userID, enrollmentSecret: password });
+            const identity: X509Identity = {
+                credentials: { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() },
+                mspId,
+                type: 'X.509',
+            };
+            await wallet.put(userID, identity);
+            return this.createUserFromIdentity(userID, identity);
+        } catch {
+            throw new Error('Credenciales inválidas o usuario no registrado');
+        }
+    }
 
+    private async createUserFromIdentity(label: string, identity: X509Identity): Promise<User> {
+        const cryptoSuite: ICryptoSuite = Utils.newCryptoSuite();
+        cryptoSuite.setCryptoKeyStore(Utils.newCryptoKeyStore());
+        const privateKey = await cryptoSuite.importKey(identity.credentials.privateKey);
+        const user = new User(label);
+        await user.setEnrollment(privateKey, identity.credentials.certificate, identity.mspId);
+        user.setCryptoSuite(cryptoSuite);
+        return user;
+    }
 
-
-  async loginWithUserIDAndPassword(userID: string, password: string, mspId: string): Promise<User> {
-    const ca = await this.getFabricCA(mspId);
-    const wallet = await Wallets.newFileSystemWallet(walletPath);
-
-    // 🔍 Intentar inscribir directamente al usuario con userID y password
-    try {
-        const enrollment = await ca.enroll({
-            enrollmentID: userID,
-            enrollmentSecret: password, // Se usa la contraseña para obtener certificado
-        });
-
-        // ✅ Si el usuario se inscribe con éxito, guardar la identidad en la wallet
-        const newUserIdentity: X509Identity = {
-            credentials: {
-                certificate: enrollment.certificate,
-                privateKey: enrollment.key.toBytes(),
-            },
-            mspId: mspId,
+    private async enrollAndStoreUser(ca: FabricCAServices, userID: string, secret: string, mspId: string): Promise<X509Identity> {
+        const enrollment = await ca.enroll({ enrollmentID: userID, enrollmentSecret: secret });
+        const identity: X509Identity = {
+            credentials: { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() },
+            mspId,
             type: 'X.509',
         };
-
-        await wallet.put(userID, newUserIdentity);
-        console.log(`✅ Usuario ${userID} inscrito con éxito y almacenado en la wallet`);
-
-        // 🔥 Convertir la identidad en un objeto `User`
-        return this.getUser(newUserIdentity);
-    } catch (error) {
-        console.error(`❌ Error en login: El usuario no está registrado o la contraseña es incorrecta`);
-        throw new Error('Credenciales inválidas o usuario no registrado');
+        const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
+        await wallet.put(userID, identity);
+        return identity;
     }
-}
-
-
-  async getUser(identity: X509Identity): Promise<User> {
-    const cryptoSuite: ICryptoSuite = Utils.newCryptoSuite();
-    const cryptoKeyStore = Utils.newCryptoKeyStore();
-    cryptoSuite.setCryptoKeyStore(cryptoKeyStore);
-
-    const privateKey = await cryptoSuite.importKey(identity.credentials.privateKey);
-    const user = new User(identity.mspId);
-    await user.setEnrollment(privateKey, identity.credentials.certificate, identity.mspId);
-    user.setCryptoSuite(cryptoSuite);
-
-    console.log(`✅ Usuario ${identity.mspId} obtenido correctamente como User`);
-    return user;
-}
 }

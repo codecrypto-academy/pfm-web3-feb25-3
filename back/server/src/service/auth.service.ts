@@ -31,10 +31,12 @@ export class AuthService {
 
 		// Encontramos al usuario por la dirección Ethereum
 		const userFind = await this.userService.findByFields({ where: { ethereumAddress } });
-
-		if (!userFind) {
+		const isUserRegistered = await this.fabricCAClient.fabricClientLoginUser(ethereumAddress, 'Org1MSP');
+		
+		if (!isUserRegistered && !userFind) {
 			throw new HttpException('User not found!', HttpStatus.UNAUTHORIZED);
 		}
+
 
 		// Verificamos que la firma coincida con el mensaje
 		const validSignature = await compareSignature(nonce, signature, ethereumAddress);
@@ -51,7 +53,7 @@ export class AuthService {
 			id_token: this.jwtService.sign(payload),
 		};
 	}
-c
+
 
 
 	/* eslint-enable */
