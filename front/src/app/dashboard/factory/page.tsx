@@ -2,10 +2,10 @@
 
 import { ManufactureBattery } from "@/components/ManufactureBattery";
 import Usuario from "../profile/page";
-import { useState } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 
 export default function Factory() {
-    const [stockCount, setStockCount] = useState(0);
+    const [stockCount, setStockCount] = usePersistedState('batteryStock', 0);
 
     const handleBatteryCreated = (quantity: number) => {
         setStockCount(prevStock => prevStock + quantity);
