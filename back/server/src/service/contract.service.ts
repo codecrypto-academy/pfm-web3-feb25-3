@@ -1,46 +1,40 @@
+import { IsEthereumAddress } from 'class-validator';
 import { Injectable, Logger } from '@nestjs/common';
-import { FabricClient } from '../client/fabric-chaincode-client';
+import { FabricChaincodeClient } from '../client/fabric-chaincode-client';
+import { UserDTO } from 'src/service/dto/user.dto';
+import { UserService } from './user.service';
 
 @Injectable()
 export class ContractService {
+
   private readonly logger = new Logger('ContractService');
 
-  constructor(private readonly fabricClient: FabricClient) {}
+  constructor(private readonly fabricClient: FabricChaincodeClient,
+    private readonly userService: UserService,
+  ) {}
 
-  async transferBattery(batteryId: string, newOwner: string): Promise<void> {
+  // Método para invocar el contrato ping
+  async pingContract(ethereumAddress: string): Promise<string> {
+
+    // Encontramos al usuario por la dirección Ethereum
+		const userFind: UserDTO = await this.userService.findByFields({ where: { ethereumAddress } });
+    this.logger.log('Inicializando conexión con el contrato Ping');
+
+    // Inicializamos la conexión con el contrato usando la identidad del usuario
+    await this.fabricClient.init(userFind);
+
     try {
-      this.logger.log(`Iniciando transferencia de batería ${batteryId} a ${newOwner}`);
+      // Invocamos la transacción 'ping' del contrato
+      const result = await this.fabricClient.evaluateTransaction('ping');
 
-      await this.fabricClient.init(); // Inicializa la conexión con Fabric
-
-      await this.fabricClient.submitTransaction('transferBattery', batteryId, newOwner);
-
-      this.logger.log(`Batería ${batteryId} transferida con éxito a ${newOwner}`);
-    } catch (error) {
-      this.logger.error('Error en la transferencia de batería:', error);
-      throw error;
-    } finally {
-      this.fabricClient.close(); // Cierra la conexión después de la transacción
-    }
-  }
-
-
-  async registerBattery(id: string): Promise<string> {
-    try {
-      this.logger.log(`Iniciando registro de batería ${id}`);
+      // Cerrar la conexión después de la transacción
+      await this.fabricClient.close();
       
-      await this.fabricClient.init(); // Inicializa la conexión con Fabric
-
-      await this.fabricClient.submitTransaction('registerBattery', id , "300");
-
-      this.logger.log(`Batería ${id} registrada correctamente`);
-      return `Batería ${id} registrada correctamente`;
+      // Si la transacción fue exitosa, podemos devolver un mensaje
+      return result;
     } catch (error) {
-      this.logger.error('Error en el registro de batería:', error);
-      throw error;
-    } finally {
-      this.fabricClient.close(); // Cierra la conexión después de la transacción
+      this.logger.error('Error al invocar el contrato Ping: ', error);
+      throw new Error('Error al invocar el contrato Ping');
     }
   }
-
 }

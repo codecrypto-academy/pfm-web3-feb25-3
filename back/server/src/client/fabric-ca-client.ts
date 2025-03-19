@@ -3,7 +3,6 @@ import { Wallets, X509Identity } from 'fabric-network';
 import { User, ICryptoSuite, Utils } from 'fabric-common';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { UserLoginDTO } from 'src/service/dto/user-login.dto';
 import { UserDTO } from 'src/service/dto/user.dto';
 import { RegisterUserDTO } from 'src/service/dto/user-register.dto';
 
