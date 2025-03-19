@@ -6,6 +6,18 @@ import { ObjectId } from "mongodb";
  * Mapper para convertir entre la entidad Battery y el DTO BatteryDTO.
  */
 export class BatteryMapper {
+
+    // Método para convertir una lista de entidades a una lista de DTOs
+    static fromEntityListToDTOList(batteries: Battery[]): BatteryDTO[] {
+      return batteries.map(battery => this.fromEntityToDTO(battery));
+    }
+  
+    // Método para convertir una lista de DTOs a una lista de entidades
+    static fromDTOListToEntityList(batteryDTOs: BatteryDTO[]): Battery[] {
+      return batteryDTOs.map(batteryDTO => this.fromDTOtoEntity(batteryDTO));
+    }
+
+
   static fromEntityToDTO(battery: Battery): BatteryDTO {
     const batteryDTO = new BatteryDTO();
     

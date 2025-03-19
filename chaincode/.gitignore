@@ -156,3 +156,5 @@ coverage/
 server/dist/
 
 dist/
+
+*.js

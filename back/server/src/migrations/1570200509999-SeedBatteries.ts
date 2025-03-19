@@ -28,7 +28,7 @@ export class SeedBatteries1670200490073 implements MigrationInterface {
     battery3.capacity = 85;
     battery3.manufacturerId = '0xabcdef567890abcdef1234567890abcdef123456';
     battery3.currentOwnerId = '0x234567890abcdef1234567890abcdef123456789';
-    battery3.status = BatteryStatus.INSTALLED;
+    battery3.status = BatteryStatus.IN_TRANSIT;
     battery3.location = 'Tesla Model S - California';
 
     const battery4 = new Battery();
@@ -36,7 +36,7 @@ export class SeedBatteries1670200490073 implements MigrationInterface {
     battery4.capacity = 50;
     battery4.manufacturerId = '0xabcdef567890abcdef1234567890abcdef123456';
     battery4.currentOwnerId = '0x234567890abcdef1234567890abcdef123456789';
-    battery4.status = BatteryStatus.RECYCLED;
+    battery4.status = BatteryStatus.MANUFACTURED;
     battery4.location = 'Recycling Plant - Germany';
 
     // Guardar las baterías en la base de datos

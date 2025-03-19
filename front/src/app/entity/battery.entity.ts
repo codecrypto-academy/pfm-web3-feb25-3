@@ -10,9 +10,7 @@ export interface Battery {
 
 export enum BatteryStatus {
     MANUFACTURED = 'Manufactured',  // Batería fabricada
-    IN_TRANSIT = 'In Transit',      // Batería en tránsito
-    RECIBE_CLIENT = 'client',        // Recibido ciente
-    SOLD = 'Sold',          // vendida
-    STOCK = 'Stock',         // en stock
+    IN_TRANSIT = 'In Transit',      // Batería en tránsito 
+    RECEIVED = 'Received',        // Batería en Distribuidor - Stock
+    SOLD = 'Sold',          // Batería vendida
   }
-  

@@ -89,3 +89,78 @@ Hyperledger Explorer para monitoreo.
 
 Hospedado en Vercel.
 Configuración de dominios y certificados SSL/TLS.
+
+
+# Desarrollo
+$$
+## Estructura de Carpetas
+
+La estructura de carpetas del proyecto debe ser la siguiente:
+
+```
+/project-root/
+  ├── fabric-samples/  # Repositorio de Hyperledger Fabric
+  ├── back/      # Backend
+  ├── chaincode/      # Chaincodes
+  ├── front/      # Frontend
+```
+
+Es importante que el directorio `fabric-samples` esté en la raíz del proyecto para garantizar el correcto funcionamiento de los scripts de red.
+
+
+## Levantar la Red
+# 🚀 Configuración y despliegue de la red Hyperledger Fabric
+
+Este documento describe cómo iniciar y desplegar un contrato inteligente en una red de Hyperledger Fabric utilizando el script `network.sh`.
+
+## 📌 Prerrequisitos
+Antes de ejecutar estos comandos, asegúrate de tener instalados los siguientes componentes:
+
+- [Hyperledger Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/install.html)
+- Docker y Docker Compose
+- Node.js y npm (para contratos en TypeScript)
+
+## 🛠️ Pasos para levantar la red y desplegar el contrato
+Ejecuta el siguiente comando para limpiar, iniciar la red y desplegar el contrato inteligente:
+
+```bash
+./network.sh down && \
+./network.sh up createChannel -ca -c mychannel && \
+./network.sh deployCCAAS -ccn basicts -ccp ../asset-transfer-basic/chaincode-typescript
+```
+
+### 🔍 Explicación de los comandos:
+1. `./network.sh down` → Detiene y elimina cualquier red activa.
+2. `./network.sh up createChannel -ca -c mychannel` → Levanta la red, crea el canal `mychannel` y usa una Autoridad de Certificación (`-ca`).
+3. `./network.sh deployCCAAS -ccn basicts -ccp ../asset-transfer-basic/chaincode-typescript` → Despliega el contrato inteligente `basicts` ubicado en `../asset-transfer-basic/chaincode-typescript`.
+
+## 🌍 Configuración del entorno
+Para interactuar con la red desde `test-network`, define las siguientes variables de entorno:
+
+```bash
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+```
+
+### 🔍 Explicación de las variables:
+- `PATH` y `FABRIC_CFG_PATH`: Configuran las rutas para Fabric.
+- `CORE_PEER_TLS_ENABLED`: Habilita la comunicación segura TLS.
+- `CORE_PEER_LOCALMSPID`: Identifica la organización (`Org1MSP`).
+- `CORE_PEER_TLS_ROOTCERT_FILE`: Especifica el certificado TLS del peer.
+- `CORE_PEER_MSPCONFIGPATH`: Ruta de las credenciales del administrador.
+- `CORE_PEER_ADDRESS`: Dirección del peer con el que interactuar.
+
+## ✅ Verificación del despliegue
+Para asegurarte de que el contrato inteligente ha sido desplegado correctamente, puedes ejecutar:
+
+```bash
+peer chaincode query -C mychannel -n basicts -c '{"Args":["ping"]}'
+---
+
+Si necesitas más detalles sobre la configuración de Hyperledger Fabric, revisa la documentación oficial en [Hyperledger Fabric Docs](https://hyperledger-fabric.readthedocs.io/).
+

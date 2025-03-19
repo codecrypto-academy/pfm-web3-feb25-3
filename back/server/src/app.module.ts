@@ -14,6 +14,7 @@ import { ContractsModule } from './module/contracts.module';
     AuthModule,
     BatteryModule,
     ContractsModule
+    
     // jhipster-needle-add-entity-module-to-main - JHipster will add entity modules here, do not remove
   ],
   controllers: [
