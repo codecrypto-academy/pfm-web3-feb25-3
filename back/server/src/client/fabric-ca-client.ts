@@ -3,6 +3,9 @@ import { Wallets, X509Identity } from 'fabric-network';
 import { User, ICryptoSuite, Utils } from 'fabric-common';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { UserLoginDTO } from 'src/service/dto/user-login.dto';
+import { UserDTO } from 'src/service/dto/user.dto';
+import { RegisterUserDTO } from 'src/service/dto/user-register.dto';
 
 // Constantes globales
 const WALLET_PATH = path.resolve(__dirname, '../../wallet');
@@ -13,6 +16,7 @@ const CA_CONFIG = {
     Org2MSP: { url: 'https://localhost:8054', tlsPath: 'org2/tls-cert.pem', name: 'ca-org2' },
 };
 
+// 
 export class FabricCAClient {
 
     private async getFabricCA(mspId: string): Promise<FabricCAServices> {
@@ -25,7 +29,10 @@ export class FabricCAClient {
         return new FabricCAServices(caInfo.url, { trustedRoots: [tlsCert], verify: false }, caInfo.name);
     }
 
-    async fabricClientLoginUser(ethereumAddress: string, mspId: string): Promise<boolean> {
+    async fabricClientLoginUser(user: UserDTO): Promise<boolean> {
+      const { ethereumAddress} = user;
+      const mspId = this.getMSPIdFromRole(user.roles[0]);
+
       const ca = await this.getFabricCA(mspId);
       const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
 
@@ -70,7 +77,10 @@ export class FabricCAClient {
         return this.createUserFromIdentity(adminLabel, identity);
     }
 
-    async registerUser(ethereumAddress: string, role: string, mspId: string): Promise<X509Identity> {
+    async registerUser(user: RegisterUserDTO): Promise<X509Identity> {
+        const { ethereumAddress} = user;
+        const role = user.roles[0];
+        const mspId = this.getMSPIdFromRole(role);
         const ca = await this.getFabricCA(mspId);
         const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
         const adminIdentity = await this.loginWithUserIDAndPassword('admin', 'adminpw', mspId);
@@ -140,4 +150,20 @@ export class FabricCAClient {
         await wallet.put(userID, identity);
         return identity;
     }
+
+    private getMSPIdFromRole(role: string): string {
+        switch (role) {
+            case 'ROLE_PRODUCER':
+                return 'Org1MSP';
+            case 'ROLE_DISTRIBUTOR':
+                return 'Org2MSP';
+            case 'ROLE_TRANSPORT':
+                return 'Org2MSP';
+            case 'ROLE_OWNER':
+                return 'Org2MSP';
+            default:
+                throw new Error(`Rol ${role} no soportado`);
+        }
+    }
+    
 }

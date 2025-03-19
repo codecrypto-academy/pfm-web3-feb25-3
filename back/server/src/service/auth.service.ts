@@ -10,6 +10,7 @@ import { UserDTO } from './dto/user.dto';
 
 import { compareSignature } from '../../utils/signature-utils'; 
 import { FabricCAClient } from '../client/fabric-ca-client';
+import { RegisterUserDTO } from './dto/user-register.dto';
 
 
 @Injectable()
@@ -30,9 +31,9 @@ export class AuthService {
 		}
 
 		// Encontramos al usuario por la dirección Ethereum
-		const userFind = await this.userService.findByFields({ where: { ethereumAddress } });
-		const isUserRegistered = await this.fabricCAClient.fabricClientLoginUser(ethereumAddress, 'Org1MSP');
-		
+		const userFind: UserDTO = await this.userService.findByFields({ where: { ethereumAddress } });
+		const isUserRegistered = await this.fabricCAClient.fabricClientLoginUser(userFind);
+
 		if (!isUserRegistered && !userFind) {
 			throw new HttpException('User not found!', HttpStatus.UNAUTHORIZED);
 		}
@@ -76,7 +77,7 @@ export class AuthService {
 
 
 
-	async registerNewUser(newUser: UserDTO): Promise<UserDTO> {
+	async registerNewUser(newUser: RegisterUserDTO): Promise<UserDTO> {
 		// Verificar si la dirección Ethereum ya está registrada
 		let userFind: UserDTO = await this.userService.findByFields({ where: { ethereumAddress: newUser.ethereumAddress } });
 	
@@ -85,13 +86,11 @@ export class AuthService {
 		}
 		
 		// Definir el rol basado en el tipo de usuario (puede venir en `newUser.role`)
-		const role = newUser.roles[0] || 'ROLE_USER';
+		const role = newUser.roles[0] || 'ROLE_OWNER';
 	
 		// Registrar el usuario en Fabric CA
-		 await this.fabricCAClient.registerUser(newUser.ethereumAddress, role, 'Org1MSP');
-		
+		await this.fabricCAClient.registerUser(newUser);
 		// Guardar el usuario en la base de datos
-		newUser.roles = [role];
 		const user = await this.userService.save(newUser);
 	
 		return user;
