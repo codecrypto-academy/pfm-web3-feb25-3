@@ -62,7 +62,6 @@ let BatteryContract = class BatteryContract extends fabric_contract_api_1.Contra
         return batteryBuffer.toString();
     }
 };
-exports.BatteryContract = BatteryContract;
 __decorate([
     (0, fabric_contract_api_1.Transaction)(),
     __metadata("design:type", Function),
@@ -81,6 +80,7 @@ __decorate([
     __metadata("design:paramtypes", [fabric_contract_api_1.Context, String]),
     __metadata("design:returntype", Promise)
 ], BatteryContract.prototype, "readBattery", null);
-exports.BatteryContract = BatteryContract = __decorate([
+BatteryContract = __decorate([
     (0, fabric_contract_api_1.Info)({ title: 'BatteryContract', description: 'Trazabilidad de Baterías' })
 ], BatteryContract);
+exports.BatteryContract = BatteryContract;

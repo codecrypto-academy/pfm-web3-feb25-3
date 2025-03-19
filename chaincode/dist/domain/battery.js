@@ -7,4 +7,4 @@ var BatteryStatus;
     BatteryStatus["IN_TRANSIT"] = "In Transit";
     BatteryStatus["INSTALLED"] = "Installed";
     BatteryStatus["RECYCLED"] = "Recycled";
-})(BatteryStatus || (exports.BatteryStatus = BatteryStatus = {}));
+})(BatteryStatus = exports.BatteryStatus || (exports.BatteryStatus = {}));
