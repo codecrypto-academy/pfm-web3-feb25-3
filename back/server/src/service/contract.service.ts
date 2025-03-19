@@ -20,15 +20,10 @@ export class ContractService {
 		const userFind: UserDTO = await this.userService.findByFields({ where: { ethereumAddress } });
     this.logger.log('Inicializando conexión con el contrato Ping');
 
-    // Inicializamos la conexión con el contrato usando la identidad del usuario
-    await this.fabricClient.init(userFind);
 
     try {
       // Invocamos la transacción 'ping' del contrato
-      const result = await this.fabricClient.evaluateTransaction('ping');
-
-      // Cerrar la conexión después de la transacción
-      await this.fabricClient.close();
+      const result = await this.fabricClient.evaluateTransaction(userFind, 'PingContract', 'ping');
       
       // Si la transacción fue exitosa, podemos devolver un mensaje
       return result;
