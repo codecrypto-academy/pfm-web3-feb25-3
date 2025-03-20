@@ -1,9 +1,8 @@
 'use client';
-
 import React, { useState, useRef } from 'react';
 
 interface BuyBatteryProps {
-    onBatteryBought: (boughtBatteries: { value: string, quantity: number }[]) => void;
+    onBatteryBought: (totalBatteries: number) => void;
 }
 
 interface Battery {
@@ -34,7 +33,7 @@ export function BuyBattery({ onBatteryBought }: BuyBatteryProps) {
             const existing = prev.find(b => b.batteryValue === batteryValue);
             if (existing) {
                 return prev.map(b => 
-                    b.batteryValue === batteryValue ? {...b, quantity} : b
+                    b.batteryValue === batteryValue ? { ...b, quantity } : b
                 );
             }
             return [...prev, { batteryValue, quantity }];
@@ -43,12 +42,13 @@ export function BuyBattery({ onBatteryBought }: BuyBatteryProps) {
 
     const handlePurchase = () => {
         if (selectedBatteries.length > 0) {
-            onBatteryBought(selectedBatteries); // <--- Enviar todo el array
+            // Calcular la cantidad total de baterías seleccionadas
+            const totalBatteries = selectedBatteries.reduce((total, b) => total + b.quantity, 0);
+            onBatteryBought(totalBatteries);
             dialogRef.current?.close();
             setSelectedBatteries([]);
         }
     };
-    
 
     const handleCancel = () => {
         dialogRef.current?.close();
