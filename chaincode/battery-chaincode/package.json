@@ -8,7 +8,7 @@
 		"watch": "tsc -w",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",
-		"start": "tsc && fabric-chaincode-node server --chaincode-address=0.0.0.0:9998 --chaincode-id=basicts_1.0:ce5dc1c24c775bfee430618ed60f4a22e26d773790bc9f1b8b1ddc547edabbf0"
+		"start": "tsc && fabric-chaincode-node server --chaincode-address=0.0.0.0:9998 --chaincode-id=basicts_1.0:e1469ca1342bf75587dbc7ec1ebed3852656bb14912efdc95ff4ddcd6a2203f6"
 	},
 	"keywords": [
 		"chaincode",

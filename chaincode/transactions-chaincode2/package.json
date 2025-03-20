@@ -1,0 +1,38 @@
+{
+	"name": "chaincode-proyect-battery-traceability",
+	"version": "1.0.0",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc",
+		"dev": "ts-node src/index.ts",
+		"watch": "tsc -w",
+		"lint": "eslint . --ext .ts",
+		"test": "jest",
+		"start": "tsc && fabric-chaincode-node server --chaincode-address=0.0.0.0:9997 --chaincode-id=basicts2_1.0:edbbe35f3f26c9b6503f7b7fdd1bb887820329a3975d102c9c08e98dfbe431f8"
+	},
+	"keywords": [
+		"chaincode",
+		"blockchain",
+		"hyperledger",
+		"fabric",
+		"battery",
+		"traceability"
+	],
+	"author": "Jean Pierre Farfan Suarez",
+	"license": "ISC",
+	"description": "Chaincode Proyect for TFM",
+	"dependencies": {
+		"chaincode-proyect-battery-traceability": "file:",
+		"chainode": "file:",
+		"fabric-contract-api": "^2.5.2",
+		"fabric-shim": "^2.5.2"
+	},
+	"devDependencies": {
+		"@types/node": "^16.11.7",
+		"@typescript-eslint/eslint-plugin": "^5.4.0",
+		"@typescript-eslint/parser": "^5.4.0",
+		"eslint": "^8.2.0",
+		"ts-node": "^10.4.0",
+		"typescript": "^4.5.2"
+	}
+}

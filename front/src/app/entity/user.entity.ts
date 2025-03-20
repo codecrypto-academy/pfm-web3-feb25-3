@@ -1,7 +1,7 @@
 export interface User {
 	id?: string;
 	ethereumAddress: string;
-	roles: RoleType[];
+	roles: string[];
 	type?: UserType;
 	firstName?: string;
 	lastName?: string;
@@ -26,7 +26,7 @@ export enum UserType {
 		USER = 'ROLE_USER',
 		PRODUCER = 'ROLE_PRODUCER',
 		TRANSPORT = 'ROLE_TRANSPORT',
-		DISTRIBUTOR = "DISTRIBUTOR",
-		OWNER = "OWNER",
-			}
+		DISTRIBUTOR = "ROLE_DISTRIBUTOR",
+		OWNER = "ROLE_OWNER",
+	}
 

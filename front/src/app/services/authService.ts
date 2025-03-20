@@ -12,10 +12,12 @@ export const authenticateUser = async (ethereumAddress: string, signature: strin
     signature,
     nonce
   });
+ 
   return response.data.id_token;
 };
 
 export const getAuthenticatedUser = async () => {
   const response = await axios.get(`${API_URL}/account`);
   return response.data;
+  
 };

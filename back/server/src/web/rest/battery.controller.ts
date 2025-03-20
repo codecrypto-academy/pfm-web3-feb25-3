@@ -74,7 +74,7 @@ export class BatteryController {
 	}
 
 	// Obtener una batería por número de serie - Acceso público (sin requerir rol)
-	@Get('/:serialNumber')
+	@Get('/check/:serialNumber')
 	@ApiOperation({ summary: 'Get a battery by serial number' })
 	@ApiResponse({
 		status: 200,
@@ -107,7 +107,7 @@ export class BatteryController {
 	}
 
 	// Eliminar una batería - Solo el propietario o el administrador pueden eliminarla
-	@Delete('/:serialNumber')
+	@Delete('/check/:serialNumber')
 	@ApiOperation({ summary: 'Delete a battery by serial number' })
 	@ApiResponse({
 		status: 204,
@@ -121,5 +121,60 @@ export class BatteryController {
 
 		await this.batteryService.getBattery(serialNumber);
 		HeaderUtil.addEntityDeletedHeaders(req.res, 'Battery', serialNumber);
+	}
+
+	@Get('/producer')
+	@ApiOperation({ summary: 'Obtiene baterías del productor' })
+	@ApiResponse({ status: 200, description: 'Lista de baterías del productor', type: [BatteryDTO] })
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.PRODUCER)
+	async getProducerBatteries(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user;
+		this.logger.log(`User ${user.ethereumAddress} is fetching producer-related batteries`);
+		return await this.batteryService.getProducerBatteries(user);
+	}
+
+	@Get('/distributor')
+	@ApiOperation({ summary: 'Obtiene baterías del distribuidor' })
+	@ApiResponse({ status: 200, description: 'Lista de baterías del distribuidor', type: [BatteryDTO] })
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.DISTRIBUTOR)
+	async getDistributorBatteries(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user;
+		this.logger.log(`User ${user.ethereumAddress} is fetching distributor-related batteries`);
+		return await this.batteryService.getDistributorBatteries(user);
+	}
+
+	@Get('/owner')
+	@ApiOperation({ summary: 'Obtiene baterías del propietario' })
+	@ApiResponse({ status: 200, description: 'Lista de baterías del propietario', type: [BatteryDTO] })
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.OWNER)
+	async getOwnerBatteries(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user;
+		this.logger.log(`User ${user.ethereumAddress} is fetching owner-related batteries`);
+		return await this.batteryService.getOwnerBatteries(user);
+	}
+
+	@Get('/available-for-owner')
+	@ApiOperation({ summary: 'Obtiene baterías disponibles para propietario' })
+	@ApiResponse({ status: 200, description: 'Lista de baterías disponibles para propietario', type: [BatteryDTO] })
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.OWNER)
+	async getAvailableBatteriesForOwner(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user;
+		this.logger.log(`User ${user.ethereumAddress} is fetching available batteries from distributors`);
+		return await this.batteryService.getAvailableBatteriesForOwner();
+	}
+
+	@Get('/available-for-distributor')
+	@ApiOperation({ summary: 'Obtiene baterías disponibles para distribuidor' })
+	@ApiResponse({ status: 200, description: 'Lista de baterías disponibles para distribuidor', type: [BatteryDTO] })
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.DISTRIBUTOR)
+	async getAvailableBatteriesForDistributor(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user;
+		this.logger.log(`User ${user.ethereumAddress} is fetching available batteries from producers`);
+		return await this.batteryService.getAvailableBatteriesForDistributor();
 	}
 }

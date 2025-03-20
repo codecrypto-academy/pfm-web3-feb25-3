@@ -7,6 +7,7 @@ import { BatteryMapper } from './mapper/battery.mapper'; // Mapeo entre entidad 
 import { FabricChaincodeClient } from '../client/fabric-chaincode-client'; // Cliente para interactuar con Hyperledger Fabric
 import { UserDTO } from './dto/user.dto'; // Información del usuario
 import { ObjectId } from 'mongodb';
+import { BatteryStatus } from '../domain/enum/battery-status.enum';
 
 @Injectable()
 export class BatteryService {
@@ -25,15 +26,7 @@ export class BatteryService {
     try {
       this.logger.log(`User ${user.ethereumAddress} is fetching all batteries`);
 
-      // Llamar al chaincode para obtener todas las baterías de la blockchain
-      const resultFromChaincode: Battery[] = await this.fabricClient.evaluateTransaction(
-        user, // Pasamos el ethereumAddress del usuario
-        'BatteryContract', // Nombre del contrato
-        'getAllBatteries' // Nombre de la transacción
-      );
-
-      // Convierte los resultados a DTO
-      const batteriesFromChaincode = BatteryMapper.fromEntityListToDTOList(resultFromChaincode);
+      const batteriesFromChaincode = BatteryMapper.fromEntityListToDTOList(await this.batteryRepository.find());
       return batteriesFromChaincode 
     } catch (error) {
       this.logger.error('Error al obtener todas las baterías desde la blockchain o base de datos:', error);
@@ -53,7 +46,7 @@ export class BatteryService {
       this.logger.log(`User ${user.ethereumAddress} is registering a new battery`);
       
       batteryDTO.manufacturerId = user.ethereumAddress;
-      batteryDTO.currentOwnerId = user.ethereumAddress;
+      batteryDTO.currentOwnerId = null;
       const savedBattery = await this.batteryRepository.save(batteryDTO);
 
       
@@ -126,5 +119,45 @@ export class BatteryService {
       this.logger.error('Error al obtener la batería:', error);
       throw new Error('Error al obtener la batería');
     }
+  }
+  
+  async getProducerBatteries(user: UserDTO): Promise<BatteryDTO[]> {
+    this.logger.log(`Fetching batteries for producer ${user.ethereumAddress}`);
+    const batteries = await this.batteryRepository.find({
+      where: { manufacturerId: user.ethereumAddress },
+    });
+    return batteries.map(battery => BatteryMapper.fromEntityToDTO(battery));
+  }
+
+  async getDistributorBatteries(user: UserDTO): Promise<BatteryDTO[]> {
+    this.logger.log(`Fetching batteries for distributor ${user.ethereumAddress}`);
+    const batteries = await this.batteryRepository.find({
+      where: { currentOwnerId: user.ethereumAddress, status: BatteryStatus.IN_TRANSIT },
+    });
+    return batteries.map(battery => BatteryMapper.fromEntityToDTO(battery));
+  }
+
+  async getOwnerBatteries(user: UserDTO): Promise<BatteryDTO[]> {
+    this.logger.log(`Fetching batteries for owner ${user.ethereumAddress}`);
+    const batteries = await this.batteryRepository.find({
+      where: { currentOwnerId: user.ethereumAddress },
+    });
+    return batteries.map(battery => BatteryMapper.fromEntityToDTO(battery));
+  }
+
+  async getAvailableBatteriesForOwner(): Promise<BatteryDTO[]> {
+    this.logger.log(`Fetching available batteries for owners`);
+    const batteries = await this.batteryRepository.find({
+      where: { currentOwnerId: null, status: BatteryStatus.IN_TRANSIT },
+    });
+    return batteries.map(battery => BatteryMapper.fromEntityToDTO(battery));
+  }
+
+  async getAvailableBatteriesForDistributor(): Promise<BatteryDTO[]> {
+    this.logger.log(`Fetching available batteries for distributors`);
+    const batteries = await this.batteryRepository.find({
+      where: { currentOwnerId: null, status: BatteryStatus.MANUFACTURED },
+    });
+    return batteries.map(battery => BatteryMapper.fromEntityToDTO(battery));
   }
 }

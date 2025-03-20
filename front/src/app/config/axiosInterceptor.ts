@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useRouter } from 'next/router'; // Para redirigir al login en caso de un error
 import { useAuthContext } from '@/app/context/AuthContext'; // Para llamar a la función logout si es necesario
 
 const setupAxiosInterceptor = () => {
@@ -25,14 +24,13 @@ const setupAxiosInterceptor = () => {
     async (error) => {
       if (error.response && error.response.status === 401) {
         // Si hay un error 401 (no autorizado), significa que el token ha expirado o es inválido
-        const router = useRouter();
         const { logout } = useAuthContext(); // Usamos el contexto de autenticación
-
+        
         // Aquí puedes agregar más lógica para manejar el redireccionamiento
         logout(); // Esto elimina el token y realiza la acción de cierre de sesión
 
         // Redirigimos al usuario al login
-        router.push('/login');
+  
 
         // Retornamos el error para que sea manejado por cualquier otro lugar si es necesario
         return Promise.reject(error);

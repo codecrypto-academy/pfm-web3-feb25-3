@@ -3,7 +3,7 @@
 
 
 :root {
-  --background: #14532d;
+  --background: #455d7a;
   --foreground: #fcfdfc;
   --dashboard-bg: #f0fdf4;    /* Color de fondo claro para dashboard */
   --dashboard-text: #166534;   /* Color de texto para dashboard */
@@ -21,7 +21,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #14532d;
+    --background: #455d7a;
     --foreground: #fcfdfc;
     --dashboard-bg: #166534;    /* Versión oscura */
     --dashboard-text: #f0fdf4;  /* Versión oscura */

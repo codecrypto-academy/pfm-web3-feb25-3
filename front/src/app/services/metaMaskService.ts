@@ -58,23 +58,36 @@ export const getMetaMaskUserData = async (): Promise<{ ethereumAddress: string[]
 /**
 	* Conecta MetaMask y obtiene todas las direcciones Ethereum disponibles.
 	*/
+/**
+ * Conecta MetaMask y permite al usuario seleccionar una cuenta manualmente.
+ */
 export const connectMetaMask = async (): Promise<string[] | null> => {
-	if (!isMetaMaskInstalled()) {
-		alert("Por favor, instala MetaMask");
-		return null;
+	if (!window.ethereum) {
+	  alert("Por favor, instala MetaMask");
+	  return null;
 	}
-
+  
 	try {
-		const accounts : string[] = await window.ethereum!.request({ method: "eth_requestAccounts" }) as string[];
-		if (accounts && accounts.length === 0) {
-			alert("No tienes cuentas disponibles en MetaMask.");
-			return null;
-		}
-
-		// Aquí podemos mostrar todas las cuentas y dejar que el usuario seleccione una
-		return accounts ;
-	} catch (error) {
-		console.error("Error al conectar con MetaMask:", error);
+	  // Solicita permiso para ver las cuentas y seleccionar manualmente
+	  await window.ethereum.request({
+		method: "wallet_requestPermissions",
+		params: [{ eth_accounts: {} }],
+	  });
+  
+	  // Ahora, solicita las cuentas disponibles
+	  const accounts: string[] = await window.ethereum.request({
+		method: "eth_requestAccounts",
+	  }) as string[];
+  
+	  if (!accounts || accounts.length === 0) {
+		alert("No tienes cuentas disponibles en MetaMask.");
 		return null;
+	  }
+  
+	  return accounts;
+	} catch (error) {
+	  console.error("Error al conectar con MetaMask:", error);
+	  return null;
 	}
-};
+  };
+  

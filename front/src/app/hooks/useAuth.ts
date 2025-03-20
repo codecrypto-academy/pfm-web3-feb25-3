@@ -9,13 +9,25 @@ export const useAuth = () => {
 
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
+	// Me gustaria un getUser() que mire el localStorage y me devuelva el user si existe
+	const getUser = async () => {
+		const token = localStorage.getItem('jwt');
+		if(token){
+			const userData: User = await getAuthenticatedUser();
+			return userData;
+		}
+		setUser(null);
+	}
 
 	const login = async (ethereumAddress: string, signature: string, nonce: string) => {
-		const token = await authenticateUser(ethereumAddress, signature, nonce);
-		localStorage.setItem('jwt', token);
-    localStorage.setItem('address', ethereumAddress);
-		const userData: User = await getAuthenticatedUser();
-		setUser(userData);
+		const user = await getUser();
+		if(!user){
+			const token = await authenticateUser(ethereumAddress, signature, nonce);
+			localStorage.setItem('jwt', token);
+			localStorage.setItem('address', ethereumAddress);
+			const userData: User = await getAuthenticatedUser();
+			setUser(userData);
+		}
 	};
 
 	const registerUser = async (user: UserRegisterDTO) => {
@@ -36,6 +48,7 @@ export const useAuth = () => {
 				setUser(userData);
 			} catch (error) {
 				console.error('No hay token o token inválido');
+				setUser(null);
 			} finally {
 				setLoading(false);
 			}
@@ -49,5 +62,5 @@ export const useAuth = () => {
 		}
 	}, []);
 
-	return { user, loading, login, registerUser, logout };
+	return { user, loading, login, registerUser, logout, getUser };
 };

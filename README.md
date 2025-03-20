@@ -164,3 +164,11 @@ peer chaincode query -C mychannel -n basicts -c '{"Args":["ping"]}'
 
 Si necesitas más detalles sobre la configuración de Hyperledger Fabric, revisa la documentación oficial en [Hyperledger Fabric Docs](https://hyperledger-fabric.readthedocs.io/).
 
+ Development Chaincode As A service
+
+ // Explicar que hay que modificar el deployCCAA.sh para establecer una url predefinida en el connection.json de los peer, para que nosotros en un proyecto a parte podamos levantar nuestro chaincode as a service. En esa url y con el chaincodeId, que usemos, el chaincode id lo usamos cuanod deplsgeamos un chaincode n la red 
+```
++ docker run --rm -d --name peer0org1_basicts_ccaas --network fabric_test -e CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999 -e CHAINCODE_ID=basicts_1.0:8371cec9c422e3223145adfcd0e6b4e6a1cf5199c32e97eb31865ece571439c2 -e CORE_CHAINCODE_ID_NAME=basicts_1.0:8371cec9c422e3223145adfcd0e6b4e6a1cf5199c32e97eb31865ece571439c2 basicts_ccaas_image:latest
+0539c88fe45641b2fe1fba525f19cb541b2b6558ae1d8cffa8b43f8c9e3f3914
++ docker run --rm -d --name peer0org2_basicts_ccaas --network fabric_test -e CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999 -e CHAINCODE_ID=basicts_1.0:8371cec9c422e3223145adfcd0e6b4e6a1cf5199c32e97eb31865ece571439c2 -e CORE_CHAINCODE_ID_NAME=basicts_1.0:8371cec9c422e3223145adfcd0e6b4e6a1cf5199c32e97eb31865ece571439c2 basicts_ccaas_image:latest
+ac6d4c343a473c831d1ee1371f5ce674af809d4a2941c96e1d3990e52cb9d834

@@ -1,16 +1,16 @@
 'use client';
 
 import { useAuth } from "@/app/hooks/useAuth";
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // Cambié a next/router
 
 export default function Exit() {
   const { logout } = useAuth();
-  const router = useRouter();
+  const router = useRouter(); // Definir router correctamente
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/');
+      router.push('/'); // Redirige a la página de inicio después del logout
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
@@ -25,7 +25,7 @@ export default function Exit() {
 
         <div className="flex gap-4 justify-center">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.back()} // Usa router.back() para volver a la página anterior
             className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           >
             No

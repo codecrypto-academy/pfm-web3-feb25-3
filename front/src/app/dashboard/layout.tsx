@@ -1,6 +1,5 @@
 import Sidebar from '@/components/Sidebar';
 import { Geist, Geist_Mono } from "next/font/google";
-//import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,12 +11,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
+      {/* Sidebar ocupa el alto completo pero no se expande */}
       <Sidebar />
-      <main className={`${geistSans.variable} ${geistMono.variable} antialiased flex-1 p-8 bg-[var(--dashboard-bg)] text-[var(--dashboard-text)]`}>
+      {/* Contenedor principal ocupa el resto del espacio */}
+      <main className="flex-1 overflow-auto p-6">
         {children}
       </main>
     </div>

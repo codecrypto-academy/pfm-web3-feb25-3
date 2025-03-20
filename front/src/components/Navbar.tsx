@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getMetaMaskUserData } from '@/app/services/metaMaskService';
-import { useAuthContext } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/hooks/useAuth';
 import { RoleType, UserType } from '@/app/entity/user.entity';
 import { UserRegisterDTO } from '@/app/entity/dto/user-auth.dto';
 import Image from 'next/image';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { useForm, Controller } from 'react-hook-form';
 
 const roleMappings: Record<UserType, RoleType[]> = {
   admin: [RoleType.ADMIN],
@@ -17,155 +18,113 @@ const roleMappings: Record<UserType, RoleType[]> = {
   owner: [RoleType.OWNER],
 };
 
-const Navbar = () => {
-  const [userData, setUserData] = useState<{ ethereumAddress: string[]; signature: string; nonce: string } | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [userType, setUserType] = useState<UserType | ''>('');
-  const [roles, setRoles] = useState<RoleType[]>([]);
-  const [accounts, setAccounts] = useState<string[]>([]); // Almacena las cuentas disponibles
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null); // Cuenta seleccionada
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
-  const { registerUser, logout, login, user } = useAuth();
+interface MetaMaskUserData {
+  ethereumAddress: string[];
+  signature: string;
+  nonce: string;
+}
 
-  // Llama a MetaMask para obtener todas las cuentas disponibles y configurarlas
+const Navbar = () => {
+  const [userData, setUserData] = useState<MetaMaskUserData | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { registerUser, login, logout, getUser, user } = useAuth();
+  const router = useRouter();
+  const { control, handleSubmit, setValue, watch } = useForm<{ userType: UserType; firstName: string; lastName: string; companyName: string; roles: RoleType[] }>({ defaultValues: { userType: '' as UserType, firstName: '', lastName: '', companyName: '', roles: [] } });
+  
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+  
+
+  //agrgar metodo que llame a logout y haga lkuego push a /
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  }
+
+  useEffect(() => {
+    const userType = watch('userType');
+    setValue('roles', roleMappings[userType] || []);
+  }, [watch('userType')]);
+
   const connectMetamask = async () => {
     const data = await getMetaMaskUserData();
     if (data) {
       setUserData(data);
-      setAccounts(data.ethereumAddress); // Configura las cuentas en el estado
-      setSelectedAccount(data.ethereumAddress[0]); // Selecciona la primera cuenta por defecto
-      setIsModalOpen(true); // Abre el modal automáticamente
+      setSelectedAccount(data.ethereumAddress[0]);
+      try {
+        await login(data.ethereumAddress[0], data.signature, data.nonce);
+        router.push('/dashboard');
+      } catch (error) {
+        setIsModalOpen(true);
+      }
     }
   };
 
-  // Obtener las cuentas disponibles y permitir al usuario seleccionar una
-  const handleSelectAccount = (account: string) => {
-    setSelectedAccount(account);
-  };
-
-  const handleRegister = async () => {
+  const onSubmit = async (formData: any) => {
     if (userData && selectedAccount) {
       const userRegisterData: UserRegisterDTO = {
         ethereumAddress: selectedAccount,
         signature: userData.signature,
         nonce: userData.nonce,
-        firstName,
-        lastName,
-        companyName,
-        type: userType as UserType,
-        roles,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        companyName: formData.companyName,
+        type: formData.userType,
+        roles: formData.roles,
       };
-
+      console.log('Datos de registro enviados:', userRegisterData);
       await registerUser(userRegisterData);
-      closeModal(); // Cierra el modal después de registrarse
+      setIsModalOpen(false);
+      router.push('/dashboard');
     }
-  };
-
-  // Cierra el modal de registro
-  const closeModal = () => {
-    setIsModalOpen(false);
   };
 
   return (
     <nav className="bg-gray-800 text-white p-4 flex justify-between items-center fixed w-full top-0 left-0 z-50">
-      <div className="text-lg font-bold">CarBatteryTraceability</div>
-      <div className="flex gap-4">
-        <button
-          onClick={connectMetamask}
-          className="flex items-center gap-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-        >
-          <Image 
-            src="/images/metamask.svg"  
-            alt="Icono de MetaMask" 
-            width={24} 
-            height={24}
-          />
-          {selectedAccount ? 'Conectado' : 'Login con MetaMask'}
-        </button>
+      <div className="text-lg font-bold">Car Battery Traceability</div>
+      <div className="flex items-center gap-4">
+        {user ? (
+          <button onClick={handleLogout} className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Cerrar Sesión</button>
+        ) : (
+          <button onClick={connectMetamask} className="flex items-center gap-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            <Image src="/images/metamask.svg" alt="MetaMask Icon" width={24} height={24} />
+            {user ? 'Conectado' : 'Login con MetaMask'}
+          </button>
+        )}
       </div>
-
-      {/* Modal de registro */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4 text-center">Formulario de Registro</h2>
-
-            {/* Si hay cuentas disponibles, mostramos una lista para que el usuario seleccione */}
-            {accounts.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold mb-2">Selecciona una cuenta</h3>
-                <select
-                  value={selectedAccount || ''}
-                  onChange={(e) => handleSelectAccount(e.target.value)}
-                  className="w-full border rounded p-2 bg-gray-800 text-white"
-                >
-                  <option value="">Selecciona una cuenta</option>
-                  {accounts.map((account) => (
-                    <option key={account} value={account}>
-                      {account}
-                    </option>
+            <h2 className="text-xl font-semibold mb-4 text-center">Registro</h2>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Controller name="firstName" control={control} render={({ field }) => <input {...field} placeholder="Nombre" className="w-full border rounded p-2 bg-gray-800 text-white mb-2" />} />
+              <Controller name="lastName" control={control} render={({ field }) => <input {...field} placeholder="Apellido" className="w-full border rounded p-2 bg-gray-800 text-white mb-2" />} />
+              <Controller name="companyName" control={control} render={({ field }) => <input {...field} placeholder="Empresa" className="w-full border rounded p-2 bg-gray-800 text-white mb-2" />} />
+              <Controller name="userType" control={control} render={({ field }) => (
+                <select {...field} className="w-full border rounded p-2 bg-gray-800 text-white mb-4">
+                  <option value="">Selecciona tipo de usuario</option>
+                  {Object.keys(roleMappings).map((type) => (
+                    <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
+              )} />
+              <div className="w-full border rounded p-2 bg-gray-800 text-white mb-4">
+                <p className="mb-2">Roles asignados:</p>
+                <ul>
+                  {watch('roles').map((role) => (
+                    <li key={role}>{role}</li>
+                  ))}
+                </ul>
               </div>
-            )}
-
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="w-full border rounded p-2 bg-gray-800 text-white mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Apellido"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="w-full border rounded p-2 bg-gray-800 text-white mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Nombre de la empresa"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full border rounded p-2 bg-gray-800 text-white mb-2"
-            />
-            <select
-              value={userType}
-              onChange={(e) => setUserType(e.target.value as UserType)}
-              className="w-full border rounded p-2 bg-gray-800 text-white mb-4"
-            >
-              <option value="">Selecciona el tipo de usuario</option>
-              {Object.keys(roleMappings).map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-
-            <div className="border p-4 rounded bg-gray-800 mb-4">
-              <h3 className="text-sm font-semibold mb-2">Roles asignados:</h3>
-              <ul>
-                {roles.map((role) => (
-                  <li key={role} className="text-gray-300">{role}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex justify-between">
-              <button
-                onClick={closeModal}
-                className="w-1/2 bg-red-600 text-white py-2 rounded hover:bg-red-700"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRegister}
-                className="w-1/2 bg-green-600 text-white py-2 rounded hover:bg-green-700"
-              >
-                Registrarse
-              </button>
-            </div>
+              <div className="flex justify-between">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="w-1/2 bg-red-600 py-2 rounded hover:bg-red-700">Cancelar</button>
+                <button type="submit" className="w-1/2 bg-green-600 py-2 rounded hover:bg-green-700">Registrarse</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
