@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {  UserCircle, Factory, ExternalLinkIcon, Store, ShoppingCart, Truck, } from 'lucide-react';
+import {  Factory, ExternalLinkIcon, Store, ShoppingCart, Truck, } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [

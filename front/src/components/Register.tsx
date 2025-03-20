@@ -10,11 +10,11 @@ import { UserRegisterDTO } from '@/app/entity/dto/user-auth.dto';
 const roleMappings: { [key: string]: string } = {
   admin: 'ROLE_ADMIN',
   user: 'ROLE_USER',
-  producer: 'ROLE_PRODUCER',
-  vehicle_manufacturer: 'ROLE_MANUFACTURER',
-  distributor: 'ROLE_DISTRIBUTOR',
-  owner: 'ROLE_OWNER',
-  recycler: 'ROLE_RECYCLER',
+  producer: 'ROLE_PRODUCER',//Fabrica
+  //vehicle_manufacturer: 'ROLE_MANUFACTURER',
+  distributor: 'ROLE_DISTRIBUTOR',//retailer
+  owner: 'ROLE_OWNER',//usuario
+  //recycler: 'ROLE_RECYCLER',
   transporter: 'ROLE_TRANSPORTER',
 };
 

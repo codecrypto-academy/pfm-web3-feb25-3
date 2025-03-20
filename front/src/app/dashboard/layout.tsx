@@ -12,12 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
-      <main className={`${geistSans.variable} ${geistMono.variable} antialiased flex-1 p-8 bg-[var(--dashboard-bg)] text-[var(--dashboard-text)]`}>
+      <main className={`${geistSans.variable} ${geistMono.variable} antialiased flex-1 p-4 md:p-8 bg-[var(--dashboard-bg)] text-[var(--dashboard-text)]`}>
         {children}
       </main>
     </div>
