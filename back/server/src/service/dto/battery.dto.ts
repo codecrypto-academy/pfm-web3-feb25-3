@@ -30,7 +30,11 @@ export class BatteryDTO {
 
   @ApiProperty({ example: 'Manufacturer A', description: 'Name of the manufacturer' })
   @IsString()
-  manufacturer: string;  // Nombre del fabricante (lo mapeamos como manufacturer en el DTO)
+  manufacturerId: string;  // Nombre del fabricante (lo mapeamos como manufacturer en el DTO)
+  
+  @ApiProperty({ example: 'Distributor B', description: 'Name of the current owner' })
+  @IsString()
+  currentOwnerId?: string;  // Nombre del 
 
   @ApiProperty({ example: 'New York', description: 'Location of the battery (optional)' })
   @IsString()

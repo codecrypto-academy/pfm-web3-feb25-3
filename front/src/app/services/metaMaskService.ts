@@ -2,74 +2,79 @@ import { MetaMaskInpageProvider } from "@metamask/providers";
 import { ethers } from "ethers";
 
 declare global {
-  interface Window {
-    ethereum?: MetaMaskInpageProvider;
-  }
+	interface Window {
+		ethereum?: MetaMaskInpageProvider;
+	}
 }
 
 /**
- * Verifica si MetaMask está instalado y disponible.
- */
+	* Verifica si MetaMask está instalado y disponible.
+	*/
 export const isMetaMaskInstalled = (): boolean => {
-  return typeof window !== "undefined" && !!window.ethereum;
+	return typeof window !== "undefined" && !!window.ethereum;
 };
 
-/**
- * Conecta MetaMask y obtiene la dirección Ethereum del usuario.
- */
-export const connectMetaMask = async (): Promise<string | null> => {
-  if (!isMetaMaskInstalled()) {
-    alert("Por favor, instala MetaMask");
-    return null;
-  }
 
-  try {
-    const accounts = await window.ethereum!.request({ method: "eth_requestAccounts" });
-    return accounts[0] || null;
-  } catch (error) {
-    console.error("Error al conectar con MetaMask:", error);
-    return null;
-  }
-};
 
 /**
- * Genera un nonce aleatorio para firmar.
- */
+	* Genera un nonce aleatorio para firmar.
+	*/
 export const generateNonce = (): string => {
-  return Math.floor(Math.random() * 1000000).toString();
+	return Math.floor(Math.random() * 1000000).toString();
 };
 
 /**
- * Firma un mensaje con MetaMask.
- */
+	* Firma un mensaje con MetaMask.
+	*/
 export const signMessage = async (message: string): Promise<string | null> => {
-  if (!isMetaMaskInstalled()) {
-    alert("MetaMask no está instalado");
-    return null;
-  }
+	if (!isMetaMaskInstalled()) {
+		alert("MetaMask no está instalado");
+		return null;
+	}
 
-  try {
-    const provider = new ethers.BrowserProvider(window.ethereum!);
-    const signer = await provider.getSigner();
-    return await signer.signMessage(message);
-  } catch (error) {
-    console.error("Error al firmar el mensaje:", error);
-    return null;
-  }
+	try {
+		const provider = new ethers.BrowserProvider(window.ethereum!);
+		const signer = await provider.getSigner();
+		return await signer.signMessage(message);
+	} catch (error) {
+		console.error("Error al firmar el mensaje:", error);
+		return null;
+	}
+};
+
+export const getMetaMaskUserData = async (): Promise<{ ethereumAddress: string[]; signature: string; nonce: string } | null> => {
+	const ethereumAddress = await connectMetaMask();
+	if (!ethereumAddress) return null;
+
+	const nonce = generateNonce();
+	const message = `Signing in to CarBatteryTraceability. Nonce: ${nonce}`;
+	const signature = await signMessage(message);
+
+	if (!signature) return null;
+
+	return { ethereumAddress, signature, nonce };
 };
 
 /**
- * Obtiene los datos del usuario desde MetaMask (dirección + firma).
- */
-export const getMetaMaskUserData = async (): Promise<{ ethereumAddress: string; signature: string; nonce: string } | null> => {
-  const ethereumAddress = await connectMetaMask();
-  if (!ethereumAddress) return null;
+	* Conecta MetaMask y obtiene todas las direcciones Ethereum disponibles.
+	*/
+export const connectMetaMask = async (): Promise<string[] | null> => {
+	if (!isMetaMaskInstalled()) {
+		alert("Por favor, instala MetaMask");
+		return null;
+	}
 
-  const nonce = generateNonce();
-  const message = `Signing in to CarBatteryTraceability. Nonce: ${nonce}`;
-  const signature = await signMessage(message);
+	try {
+		const accounts : string[] = await window.ethereum!.request({ method: "eth_requestAccounts" }) as string[];
+		if (accounts && accounts.length === 0) {
+			alert("No tienes cuentas disponibles en MetaMask.");
+			return null;
+		}
 
-  if (!signature) return null;
-
-  return { ethereumAddress, signature, nonce };
+		// Aquí podemos mostrar todas las cuentas y dejar que el usuario seleccione una
+		return accounts ;
+	} catch (error) {
+		console.error("Error al conectar con MetaMask:", error);
+		return null;
+	}
 };

@@ -1,16 +1,16 @@
 import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Delete,
-  Get,
-  Logger,
-  Param,
-  Post,
-  Put,
-  Req,
-  UseInterceptors,
-  UseGuards,
+	Body,
+	ClassSerializerInterceptor,
+	Controller,
+	Delete,
+	Get,
+	Logger,
+	Param,
+	Post,
+	Put,
+	Req,
+	UseInterceptors,
+	UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BatteryService } from '../../service/battery.service';
@@ -24,104 +24,102 @@ import { JwtService } from '@nestjs/jwt'; // Para decodificar el JWT
 @Controller('api/batteries')
 @UseInterceptors(ClassSerializerInterceptor)
 export class BatteryController {
-  logger = new Logger('BatteryController');
+	logger = new Logger('BatteryController');
 
-  constructor(
-    private readonly batteryService: BatteryService,
-  ) {}
+	constructor(
+		private readonly batteryService: BatteryService,
+	) {}
 
-  // Obtener todas las baterías - Requiere autenticación y rol de ADMIN
-  @Get()
-  @ApiOperation({ summary: 'Get the list of all batteries' })
-  @ApiResponse({
-    status: 200,
-    description: 'List all batteries',
-    type: [BatteryDTO],
-  })
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.PRODUCER, RoleType.DISTRIBUTOR, RoleType.TRANSPORT, RoleType.OWNER) // Permite acceso a los roles mencionados
-  async getAllBatteries(@Req() req: Request): Promise<BatteryDTO[]> {
-    const user = req.user; // Access the authenticated user from the request
-    this.logger.log(`User ${user.ethereumAddress} is requesting all batteries`);
+	// Obtener todas las baterías - Requiere autenticación y rol de ADMIN
+	@Get()
+	@ApiOperation({ summary: 'Get the list of all batteries' })
+	@ApiResponse({
+		status: 200,
+		description: 'List all batteries',
+		type: [BatteryDTO],
+	})
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.PRODUCER, RoleType.DISTRIBUTOR, RoleType.TRANSPORT, RoleType.OWNER) // Permite acceso a los roles mencionados
+	async getAllBatteries(@Req() req: Request): Promise<BatteryDTO[]> {
+		const user = req.user; // Access the authenticated user from the request
+		this.logger.log(`User ${user.ethereumAddress} is requesting all batteries`);
 
-    // Pasamos el usuario a la llamada del servicio de la batería
-    const results: BatteryDTO[] = await this.batteryService.getAllBatteries(user);
-    return results;
-  }
+		// Pasamos el usuario a la llamada del servicio de la batería
+		const results: BatteryDTO[] = await this.batteryService.getAllBatteries(user);
+		return results;
+	}
 
-  // Crear una nueva batería - Solo el fabricante puede crearla
-  @Post('/')
-  @ApiOperation({ summary: 'Create a new battery' })
-  @ApiResponse({
-    status: 201,
-    description: 'The battery has been successfully created.',
-    type: BatteryDTO,
-  })
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.PRODUCER) // Solo el fabricante (PRODUCER) puede crear baterías
-  async createBattery(@Req() req: Request, @Body() batteryDTO: BatteryDTO): Promise<BatteryDTO> {
-    const user = req.user; // Access the authenticated user from the request
-    this.logger.log(`User ${user.ethereumAddress} is creating a new battery`);
+	// Crear una nueva batería - Solo el fabricante puede crearla
+	@Post('/')
+	@ApiOperation({ summary: 'Create a new battery' })
+	@ApiResponse({
+		status: 201,
+		description: 'The battery has been successfully created.',
+		type: BatteryDTO,
+	})
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.PRODUCER) // Solo el fabricante (PRODUCER) puede crear baterías
+	async createBattery(@Req() req: Request, @Body() batteryDTO: BatteryDTO): Promise<BatteryDTO> {
+		const user = req.user; // Access the authenticated user from the request
+		this.logger.log(`User ${user.ethereumAddress} is creating a new battery`);
 
-    // Llamamos al servicio para registrar la batería, pasando el usuario como parte de la transacción
-    const created: BatteryDTO = await this.batteryService.registerBattery(
-      user,
-      batteryDTO.id,
-      batteryDTO.serialNumber,
-      batteryDTO.capacity,
-    );
-    
-    HeaderUtil.addEntityCreatedHeaders(req.res, 'Battery', created.id);
-    return created;
-  }
+		// Llamamos al servicio para registrar la batería, pasando el usuario como parte de la transacción
+		const created: BatteryDTO = await this.batteryService.registerBattery(
+			user,
+			batteryDTO
+		);
 
-  // Obtener una batería por número de serie - Acceso público (sin requerir rol)
-  @Get('/:serialNumber')
-  @ApiOperation({ summary: 'Get a battery by serial number' })
-  @ApiResponse({
-    status: 200,
-    description: 'The found battery',
-    type: BatteryDTO,
-  })
-  async getBattery(@Param('serialNumber') serialNumber: string): Promise<BatteryDTO> {
-    const battery: BatteryDTO = await this.batteryService.getBattery(serialNumber);
-    return battery;
-  }
+		HeaderUtil.addEntityCreatedHeaders(req.res, 'Battery', created.id);
+		return created;
+	}
 
-  // Actualizar una batería - Solo el distribuidor o el propietario actual pueden actualizarla
-  @Put('/')
-  @ApiOperation({ summary: 'Update a battery' })
-  @ApiResponse({
-    status: 200,
-    description: 'The battery has been successfully updated.',
-    type: BatteryDTO,
-  })
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.PRODUCER, RoleType.DISTRIBUTOR) // Distribuidor o productor pueden actualizar
-  async updateBattery(@Req() req: Request, @Body() batteryDTO: BatteryDTO): Promise<BatteryDTO> {
-    const user = req.user; // Access the authenticated user from the request
-    this.logger.log(`User ${user.ethereumAddress} is updating battery ${batteryDTO.id}`);
+	// Obtener una batería por número de serie - Acceso público (sin requerir rol)
+	@Get('/:serialNumber')
+	@ApiOperation({ summary: 'Get a battery by serial number' })
+	@ApiResponse({
+		status: 200,
+		description: 'The found battery',
+		type: BatteryDTO,
+	})
+	async getBattery(@Param('serialNumber') serialNumber: string): Promise<BatteryDTO> {
+		const battery: BatteryDTO = await this.batteryService.getBattery(serialNumber);
+		return battery;
+	}
 
-    // Llamamos al servicio para actualizar la batería, pasando el usuario y el token
-    const updatedBattery: BatteryDTO = await this.batteryService.updateBattery(batteryDTO, user);
-    HeaderUtil.addEntityUpdatedHeaders(req.res, 'Battery', updatedBattery.id);
-    return updatedBattery;
-  }
+	// Actualizar una batería - Solo el distribuidor o el propietario actual pueden actualizarla
+	@Put('/')
+	@ApiOperation({ summary: 'Update a battery' })
+	@ApiResponse({
+		status: 200,
+		description: 'The battery has been successfully updated.',
+		type: BatteryDTO,
+	})
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.PRODUCER, RoleType.DISTRIBUTOR) // Distribuidor o productor pueden actualizar
+	async updateBattery(@Req() req: Request, @Body() batteryDTO: BatteryDTO): Promise<BatteryDTO> {
+		const user = req.user; // Access the authenticated user from the request
+		this.logger.log(`User ${user.ethereumAddress} is updating battery ${batteryDTO.id}`);
 
-  // Eliminar una batería - Solo el propietario o el administrador pueden eliminarla
-  @Delete('/:serialNumber')
-  @ApiOperation({ summary: 'Delete a battery by serial number' })
-  @ApiResponse({
-    status: 204,
-    description: 'The battery has been successfully deleted.',
-  })
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.ADMIN, RoleType.DISTRIBUTOR) // Administrador o distribuidor pueden eliminar
-  async deleteBattery(@Req() req: Request, @Param('serialNumber') serialNumber: string): Promise<void> {
-    const user = req.user; // Access the authenticated user from the request
-    this.logger.log(`User ${user.ethereumAddress} is deleting battery with serial number ${serialNumber}`);
+		// Llamamos al servicio para actualizar la batería, pasando el usuario y el token
+		const updatedBattery: BatteryDTO = await this.batteryService.updateBattery(batteryDTO, user);
+		HeaderUtil.addEntityUpdatedHeaders(req.res, 'Battery', updatedBattery.id);
+		return updatedBattery;
+	}
 
-    await this.batteryService.getBattery(serialNumber);
-    HeaderUtil.addEntityDeletedHeaders(req.res, 'Battery', serialNumber);
-  }
+	// Eliminar una batería - Solo el propietario o el administrador pueden eliminarla
+	@Delete('/:serialNumber')
+	@ApiOperation({ summary: 'Delete a battery by serial number' })
+	@ApiResponse({
+		status: 204,
+		description: 'The battery has been successfully deleted.',
+	})
+	@UseGuards(AuthGuard, RolesGuard)
+	@Roles(RoleType.ADMIN, RoleType.DISTRIBUTOR) // Administrador o distribuidor pueden eliminar
+	async deleteBattery(@Req() req: Request, @Param('serialNumber') serialNumber: string): Promise<void> {
+		const user = req.user; // Access the authenticated user from the request
+		this.logger.log(`User ${user.ethereumAddress} is deleting battery with serial number ${serialNumber}`);
+
+		await this.batteryService.getBattery(serialNumber);
+		HeaderUtil.addEntityDeletedHeaders(req.res, 'Battery', serialNumber);
+	}
 }

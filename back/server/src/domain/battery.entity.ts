@@ -20,7 +20,7 @@ export class Battery {
   manufacturerId: string;  // ID del fabricante que la creó
 
   @Column()
-  currentOwnerId: string;  // ID del usuario actual (distribuidor, dueño, etc.)
+  currentOwnerId?: string;  // ID del usuario actual (distribuidor, dueño, etc.)
 
   @Column({ type: 'enum', enum: BatteryStatus, default: BatteryStatus.MANUFACTURED })  
   status: BatteryStatus;  // Estado: Manufactured, In Transit, Installed, Recycled

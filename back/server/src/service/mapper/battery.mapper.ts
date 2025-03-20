@@ -26,7 +26,8 @@ export class BatteryMapper {
     batteryDTO.serialNumber = battery.serialNumber;
     batteryDTO.capacity = battery.capacity;
     batteryDTO.status = battery.status;
-    batteryDTO.manufacturer = battery.manufacturerId; // Mapeamos manufacturerId como manufacturer
+    batteryDTO.manufacturerId = battery.manufacturerId; // Mapeamos manufacturerId como manufacturer
+    batteryDTO.currentOwnerId = battery.currentOwnerId; // Mapeamos currentOwnerId como currentOwner
     batteryDTO.location = battery.location;
     
     return batteryDTO;
@@ -43,10 +44,8 @@ export class BatteryMapper {
     battery.serialNumber = batteryDTO.serialNumber;
     battery.capacity = batteryDTO.capacity;
     battery.status = batteryDTO.status;
-    
-    // Mapeamos manufacturer a manufacturerId
-    battery.manufacturerId = batteryDTO.manufacturer; 
-
+    battery.manufacturerId = batteryDTO.manufacturerId; 
+    battery.currentOwnerId = batteryDTO.currentOwnerId;
     battery.location = batteryDTO.location;
 
     return battery;

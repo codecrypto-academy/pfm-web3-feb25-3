@@ -48,22 +48,23 @@ export class BatteryService {
    * @param serialNumber Número de serie de la batería
    * @param capacity Capacidad de la batería
    */
-  async registerBattery(user: UserDTO, id: string, serialNumber: string, capacity: number): Promise<BatteryDTO> {
+  async registerBattery(user: UserDTO, batteryDTO: BatteryDTO): Promise<BatteryDTO> {
     try {
       this.logger.log(`User ${user.ethereumAddress} is registering a new battery`);
+      
+      batteryDTO.manufacturerId = user.ethereumAddress;
+      batteryDTO.currentOwnerId = user.ethereumAddress;
+      const savedBattery = await this.batteryRepository.save(batteryDTO);
 
+      
       // Llamar al chaincode para registrar la batería en la blockchain
-      const resultFromChaincode = await this.fabricClient.evaluateTransaction(
+      await this.fabricClient.submitTransaction(
         user, // El usuario que está registrando la batería
         'BatteryContract', // Nombre del contrato
         'registerBattery', // Nombre de la transacción
-        id, serialNumber, capacity.toString(), user.ethereumAddress // Pasamos los parámetros necesarios
+        savedBattery._id.toString(), savedBattery.serialNumber, savedBattery.capacity.toString()// Pasamos los parámetros correctamente como strings
       );
-
-      // También guardamos la batería en la base de datos local
-      const batteryEntity = BatteryMapper.fromDTOtoEntity(resultFromChaincode);
-      const savedBattery = await this.batteryRepository.save(batteryEntity);
-
+  
       // Convertir la entidad guardada a DTO
       return BatteryMapper.fromEntityToDTO(savedBattery);
     } catch (error) {
@@ -71,6 +72,7 @@ export class BatteryService {
       throw new Error('Error al registrar la batería');
     }
   }
+  
 
   /**
    * Actualizar el estado de una batería tanto en la base de datos como en la blockchain.

@@ -1,51 +1,53 @@
+import { registerUserService } from './../services/userService';
 import { useState, useEffect } from 'react';
 import { authenticateUser, getAuthenticatedUser } from '../services/authService';
+import { User } from '../entity/user.entity';
+import { UserRegisterDTO } from '../entity/dto/user-auth.dto';
+
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const login = async (ethereumAddress: string, signature: string, nonce: string) => {
-    const token = await authenticateUser(ethereumAddress, signature, nonce);
-    localStorage.setItem('jwt', token);
-    const userData = await getAuthenticatedUser();
-    setUser(userData);
-  };
-  const logout = () => {
-    localStorage.removeItem('jwt');
-  /*const logout = async () => {
-    try {
-      // Limpiar el estado de autenticación
-      setUser(null);
-      // Limpiar el token si lo almacenas en localStorage
-      localStorage.removeItem('token');
-      // Redirigir al inicio
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error durante el logout:', error);
-    }*/
-   setUser(null);
-  };
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getAuthenticatedUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('No hay token o token inválido');
-      } finally {
-        setLoading(false);
-      }
-    };
+	const [user, setUser] = useState<User | null>(null);
+	const [loading, setLoading] = useState(true);
 
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, []);
+	const login = async (ethereumAddress: string, signature: string, nonce: string) => {
+		const token = await authenticateUser(ethereumAddress, signature, nonce);
+		localStorage.setItem('jwt', token);
+    localStorage.setItem('address', ethereumAddress);
+		const userData: User = await getAuthenticatedUser();
+		setUser(userData);
+	};
 
-  return { user, loading, login, logout };
+	const registerUser = async (user: UserRegisterDTO) => {
+		await registerUserService(user);
+		await login(user.ethereumAddress, user.signature, user.nonce);
+	};
+
+	const logout = () => {
+		localStorage.removeItem('jwt');
+		localStorage.removeItem('address');
+		setUser(null);
+	};
+
+	useEffect(() => {
+		const fetchUser = async () => {
+			try {
+				const userData: User = await getAuthenticatedUser();
+				setUser(userData);
+			} catch (error) {
+				console.error('No hay token o token inválido');
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		const token = localStorage.getItem('jwt');
+		if (token) {
+			fetchUser();
+		} else {
+			setLoading(false);
+		}
+	}, []);
+
+	return { user, loading, login, registerUser, logout };
 };
